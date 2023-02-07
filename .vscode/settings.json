@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "optional": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "system_error": "cpp",
+        "array": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp",
+        "map": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "atomic": "cpp",
+        "cstdint": "cpp",
+        "cstddef": "cpp",
+        "string": "cpp"
+    }
+}

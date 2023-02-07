@@ -29,23 +29,25 @@
 #define PKT_TX_ACK_DATA_SIZE 27
 #define PULL_DATA_FREQUENCY  30 // every 30 seconds
 
-#define DEV_EUI_SIZE         8
-#define GATEWAY_EUI_SIZE     8
+#define GATEWAY_EUI_SIZE        8
 #define GATEWAY_EUI_DEFAULT     "5b4931f97b1c0a8e"
 #define FORWARDER_PORT_DEFAULT  1700
 #define FORWARDER_QUEUE_SIZE    10
 
+#define FORWARDER_DEV_EUI_SIZE      8
+#define FORWARDER_PKT_MAX_SIZE      1024
+
 typedef struct forwarder_data_t{
-    uint8_t DevEUI[4];
+    uint8_t DevEUI[FORWARDER_DEV_EUI_SIZE];
 	uint32_t packetSize;
-    uint8_t packet[1024];
+    uint8_t packet[FORWARDER_PKT_MAX_SIZE];
 } Forwarder_data_t;
 
 
 class Handler {
 private:
     uint8_t  gatewayEUI[GATEWAY_EUI_SIZE];
-    std::map<uint16_t, uint8_t[DEV_EUI_SIZE]> mapping;
+    std::map<uint16_t, uint8_t[FORWARDER_DEV_EUI_SIZE]> mapping;
     uint16_t tokenX;
     uint16_t tokenY;
     uint16_t tokenZ;
@@ -110,11 +112,20 @@ public:
 
 };
 
+/********************* Exported Global Variables **********************/
+
 extern QueueHandle_t qGatewayToForwarder;
 extern QueueHandle_t qForwarderToGateway;
 extern ForwarderClass Forwarder;
 
+
+/*********************** Periodic Task Entry ************************/
+
 void periodicTaskEntry(void * parameter);
+
+
+/*********************** Global Function Prototypes ************************/
+
 void printForwarderData(Forwarder_data_t *fData);
 
 

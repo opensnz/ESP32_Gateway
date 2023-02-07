@@ -5,8 +5,7 @@ TransceiverClass Transceiver = TransceiverClass(LORA_FREQUENCY_DEFAULT);
 
 void TransceiverClass::setup(void){
     qTransceiverToGateway = xQueueCreate(TRANSCEIVER_QUEUE_SIZE, sizeof(Transceiver_data_t));
-    if (qTransceiverToGateway == NULL)
-    {
+    if (qTransceiverToGateway == NULL){
         printf("Failed to create queue= %p\n", qTransceiverToGateway);
     }
     LoRa.setPins(LORA_CS_PIN, LORA_RESET_PIN, LORA_IRQ_PIN);
@@ -30,7 +29,7 @@ void TransceiverClass::loop(void){
             tData.payload[i] = i;
         }
         if(qTransceiverToGateway != NULL){
-            xQueueSend(qTransceiverToGateway, &tData, (TickType_t)0);
+            xQueueSend(qTransceiverToGateway, &tData, portMAX_DELAY);
         }
         delay(5000);
     }
@@ -46,6 +45,9 @@ void TransceiverClass::main(void){
     this->loop();
 }
 
+
+
+/*********************** Global Function Implementations ************************/
 
 void onReceiveLoRa(int packetSize){
     Transceiver_data_t tData;

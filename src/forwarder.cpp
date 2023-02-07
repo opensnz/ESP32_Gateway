@@ -3,7 +3,7 @@
 QueueHandle_t qGatewayToForwarder;
 QueueHandle_t qForwarderToGateway;
 
-ForwarderClass Forwarder = ForwarderClass(IPAddress((uint8_t)192,(uint8_t)168,(uint8_t)271,(uint8_t)32), FORWARDER_PORT_DEFAULT);
+ForwarderClass Forwarder = ForwarderClass(IPAddress((uint8_t)192,(uint8_t)168,(uint8_t)217,(uint8_t)32), FORWARDER_PORT_DEFAULT);
 
 ForwarderClass::ForwarderClass(IPAddress host, uint16_t port){
     this->host = host;
@@ -124,23 +124,9 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
 }
 
 
-void printForwarderData(Forwarder_data_t *fData)
-{
-    Serial.println("\n################ ForwarderClass Data ################");
-    Serial.print ("DevEUI = ");
-    for(int i=0; i<4; i++){
-        Serial.printf("%02X", fData->DevEUI[i]);
-    }
-    Serial.println();
-    Serial.print ("Packet = ");
-    for(int i=0; i<fData->packetSize; i++){
-        Serial.printf("%02X", fData->packet[i]);
-    }
-    Serial.println("\n##################################################");
-}
-
 
 /********************** Periodic Task Entry *************************************/
+
 void periodicTaskEntry(void * parameter){
     uint8_t packet[PKT_MIN_SIZE];
     while(true)
@@ -258,9 +244,27 @@ uint32_t Handler::txAck(uint16_t tokenZ, uint8_t *packet){
 }
 
 uint32_t Handler::getDevEUI(uint8_t *pDevEUI){
-    for(int i=0; i<DEV_EUI_SIZE; i++)
+    for(int i=0; i<FORWARDER_DEV_EUI_SIZE; i++)
     {
         pDevEUI[i] = this->gatewayEUI[i];
     }
-    return DEV_EUI_SIZE;
+    return FORWARDER_DEV_EUI_SIZE;
+}
+
+
+/*********************** Global Function Implementations ************************/
+
+void printForwarderData(Forwarder_data_t *fData)
+{
+    Serial.println("\n################ ForwarderClass Data ################");
+    Serial.print ("DevEUI = ");
+    for(int i=0; i<4; i++){
+        Serial.printf("%02X", fData->DevEUI[i]);
+    }
+    Serial.println();
+    Serial.print ("Packet = ");
+    for(int i=0; i<fData->packetSize; i++){
+        Serial.printf("%02X", fData->packet[i]);
+    }
+    Serial.println("\n##################################################");
 }
