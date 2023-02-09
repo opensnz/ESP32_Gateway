@@ -2,6 +2,7 @@
 #define __GATEWAY_H__
 
 #include <Arduino.h>
+#include <Arduino_JSON.h>
 
 #define DEV_EUI_SIZE      8
 #define APP_EUI_SIZE      8
@@ -14,6 +15,12 @@
 #define DEVICE_DEVNONCE_DEFAULT   1
 #define DEVICE_FCNT_DEFAULT       1
 #define DEVICE_FPORT_DEFAULT      1
+
+#define NTP_SERVER_1     "pool.ntp.org"
+#define NTP_SERVER_2     "time.nist.gov"
+#define GMT_OFFSET_SEC   0
+#define DAY_OFFSET_SEC   0
+#define GPS_START_TIMESTAMP 315964800 // January 6, 1980, 00:00:00 (seconds)
 
 
 typedef struct device_data_t{
@@ -58,11 +65,16 @@ extern GatewayClass Gateway;
 
 /*************** Global Function Prototypes *******************/
 
-void httpPOSTRequest(String serverName, String body);
+int httpPOSTRequest(String serverName, String body, String & response);
 
 uint32_t hexStringToArray(const char * hexString, uint8_t *pArray);
 
 uint32_t arrayToHexString(const uint8_t *pArray, uint32_t size, char * hexString);
 
+void timeAdjustmentNotification(struct timeval *t);
+
+void genericPacket(JSONVar & packet);
+
+time_t getTime(struct tm * timeinfo);
 
 #endif /* __GATEWAY_H__ */
