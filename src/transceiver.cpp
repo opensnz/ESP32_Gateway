@@ -1,26 +1,27 @@
 #include "transceiver.h"
 
-QueueHandle_t qTransceiverToGateway;
+QueueHandle_t qTransceiverToGateway = NULL;
 TransceiverClass Transceiver = TransceiverClass(LORA_FREQUENCY_DEFAULT);
 
 void TransceiverClass::setup(void){
     qTransceiverToGateway = xQueueCreate(TRANSCEIVER_QUEUE_SIZE, sizeof(Transceiver_data_t));
     if (qTransceiverToGateway == NULL){
-        printf("Failed to create queue= %p\n", qTransceiverToGateway);
+        APP_LOGF("Failed to create queue= %p\n", qTransceiverToGateway);
     }
     LoRa.setPins(LORA_CS_PIN, LORA_RESET_PIN, LORA_IRQ_PIN);
     if (!LoRa.begin(868E6)) {
-        Serial.println("Starting LoRa failed!");
+        APP_LOG("Starting LoRa failed!");
         while (1);
     }
-    LoRa.onReceive(onReceiveLoRa);
+    LoRa.onReceive(onReceiveLoRaNotification);
 }
 
 
 void TransceiverClass::loop(void){
+    Transceiver_data_t tData;
     while(true)
     {
-        Transceiver_data_t tData;
+        delay(5000);
         tData.rssi = 4;
         tData.snr = 3;
         tData.payloadSize = 200;
@@ -31,7 +32,6 @@ void TransceiverClass::loop(void){
         if(qTransceiverToGateway != NULL){
             xQueueSend(qTransceiverToGateway, &tData, portMAX_DELAY);
         }
-        delay(5000);
     }
 }
 
@@ -39,9 +39,9 @@ TransceiverClass::TransceiverClass(uint32_t freq){
     this->freq = freq;
 }
 void TransceiverClass::main(void){
-    printf("TransceiverClass setting...\n");
+    APP_PRINT_LN("TransceiverClass setting...");
     this->setup();
-    printf("TransceiverClass running...\n");
+    APP_PRINT_LN("TransceiverClass running...");
     this->loop();
 }
 
@@ -49,7 +49,7 @@ void TransceiverClass::main(void){
 
 /*********************** Global Function Implementations ************************/
 
-void onReceiveLoRa(int packetSize){
+void onReceiveLoRaNotification(int packetSize){
     Transceiver_data_t tData;
     tData.rssi = LoRa.packetRssi();
     tData.snr = LoRa.packetSnr();
@@ -67,18 +67,18 @@ void onReceiveLoRa(int packetSize){
 
 void printTransceiverData(Transceiver_data_t *tData)
 {
-    Serial.println("\n################ TransceiverClass Data ################");
-    Serial.print ("DevEUI = ");
+    APP_PRINT_LN("\n################ Transceiver Data ################");
+    APP_LOG ("DevEUI = ");
     for(int i=0; i<4; i++){
-        Serial.printf("%02X", tData->DevEUI[i]);
+        APP_PRINTF("%02X", tData->DevEUI[i]);
     }
-    Serial.println();
-    Serial.printf("RSSI   = %d\n", tData->rssi);
-    Serial.printf("SNR    = %d\n", tData->snr);
-    Serial.printf("SIZE   = %d\n", tData->payloadSize);
-    Serial.print ("DATA   = ");
+    APP_PRINT("\n");
+    APP_LOGF_LN("RSSI   = %d", tData->rssi);
+    APP_LOGF_LN("SNR    = %d", tData->snr);
+    APP_LOGF_LN("SIZE   = %d", tData->payloadSize);
+    APP_LOG("DATA   = ");
     for(int i=0; i<tData->payloadSize; i++){
-        Serial.printf("%02X", tData->payload[i]);
+        APP_PRINTF("%02X", tData->payload[i]);
     }
-    Serial.println("\n##################################################");
+    APP_PRINT_LN("\n##################################################");
 }

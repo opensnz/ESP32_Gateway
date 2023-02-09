@@ -6,6 +6,7 @@
 #include <freertos/queue.h>
 #include <SPI.h>
 #include <LoRa.h>
+#include "log.h"
 
 #define halfWord(hi, lo)                    ((hi << 8) | lo)
 #define bitRead(value, bit)                 (((value) >> (bit)) & 0x01)
@@ -14,7 +15,7 @@
 #define bitWrite(value, bit, bitvalue)      ((bitvalue) ? bitSet(value, bit) : \
                                             			  bitClear(value, bit))
 
-#define LORA_FREQUENCY_DEFAULT  868000000U         // LoRa default RF frequency
+#define LORA_FREQUENCY_DEFAULT  868000000U        // LoRa default RF frequency
 #define LORA_CS_PIN             GPIO_NUM_18       // LoRa radio chip select
 #define LORA_RESET_PIN          GPIO_NUM_14       // LoRa radio reset
 #define LORA_IRQ_PIN            GPIO_NUM_26       // change for your board; must be a hardware interrupt pin
@@ -54,7 +55,7 @@ extern TransceiverClass Transceiver;
 
 /******************* Global Function Prototypes ************************/
 
-void onReceiveLoRa(int packetSize);
+void onReceiveLoRaNotification(int packetSize);
 void printTransceiverData(Transceiver_data_t *tData);
 
 #endif /* __TRANSCEIVER_H__ */

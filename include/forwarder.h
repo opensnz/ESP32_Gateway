@@ -7,6 +7,7 @@
 #include <map>
 #include <WiFi.h>
 #include <AsyncUDP.h>
+#include "log.h"
 
 #define halfWord(hi, lo)                    ((hi << 8) | lo)
 #define bitRead(value, bit)                 (((value) >> (bit)) & 0x01)
@@ -30,7 +31,7 @@
 #define PULL_DATA_FREQUENCY  30 // every 30 seconds
 
 #define GATEWAY_EUI_SIZE        8
-#define GATEWAY_EUI_DEFAULT     "5b4931f97b1c0a8e"
+#define GATEWAY_EUI_DEFAULT     "52db527edd69b3df"
 #define FORWARDER_PORT_DEFAULT  1700
 #define FORWARDER_QUEUE_SIZE    10
 
@@ -127,6 +128,5 @@ void periodicTaskEntry(void * parameter);
 /*********************** Global Function Prototypes ************************/
 
 void printForwarderData(Forwarder_data_t *fData);
-
 
 #endif /* __FORWARDER_H__ */

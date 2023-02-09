@@ -1,14 +1,13 @@
 #include "forwarder.h"
 
-QueueHandle_t qGatewayToForwarder;
-QueueHandle_t qForwarderToGateway;
+QueueHandle_t qGatewayToForwarder = NULL;
+QueueHandle_t qForwarderToGateway = NULL;
 
-ForwarderClass Forwarder = ForwarderClass(IPAddress((uint8_t)192,(uint8_t)168,(uint8_t)217,(uint8_t)32), FORWARDER_PORT_DEFAULT);
+ForwarderClass Forwarder = ForwarderClass(IPAddress(192, 168, 217, 62), FORWARDER_PORT_DEFAULT);
 
 ForwarderClass::ForwarderClass(IPAddress host, uint16_t port){
     this->host = host;
     this->port = port;
-    Serial.println("ForwarderClass");
 }
 
 void ForwarderClass::setup(void){
@@ -17,26 +16,28 @@ void ForwarderClass::setup(void){
     qForwarderToGateway = xQueueCreate(FORWARDER_QUEUE_SIZE, sizeof(Forwarder_data_t));
     if (qGatewayToForwarder == NULL)
     {
-        printf("Failed to create queue= %p\n", qGatewayToForwarder);
+        APP_LOGF_LN("Failed to create queue= %p", qGatewayToForwarder);
     }
     if (qForwarderToGateway == NULL)
     {
-        printf("Failed to create queue= %p\n", qForwarderToGateway);
+        APP_LOGF_LN("Failed to create queue= %p", qForwarderToGateway);
     }
 
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.println("WiFi Failed");
+        APP_LOG_LN("WiFi Failed");
         while(1) {
             delay(1000);
         }
     }
 
-    if(udp.connect(this->host, this->port)) {
-        Serial.println("UDP connected");
+    if(udp.listen(IPAddress(0,0,0,0), this->port)) {
+        APP_LOG_LN("UDP connected");
         udp.onPacket([](AsyncUDPPacket packet) {
-            Serial.println("UDP onPacket");
+            APP_LOG_LN("UDP Packet Received Notification");
             Forwarder.handle(packet.data(), packet.length());
         });
+    }else{
+        APP_LOG_LN("UDP not connected");
     }
 
     xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  2000, NULL, 1, &periodicTaskHandler, 1);            
@@ -48,13 +49,23 @@ void ForwarderClass::loop(void){
     BaseType_t status = pdFALSE;
     while(true)
     {
-        status = xQueueReceive(qGatewayToForwarder, &fData, portMAX_DELAY);
-        if(status == pdTRUE)
+        if(qGatewayToForwarder == NULL)
         {
-            uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
-            this->handler.pushData(fData.packet, fData.packetSize, fData.DevEUI, packet);
-            this->udp.writeTo(packet, PKT_MIN_SIZE + fData.packetSize, this->host, this->port);
-            status = pdFALSE;
+            APP_PRINT_LN("Waiting for Queue GatewayToForwarder Init");
+            delay(100);
+        }else
+        {
+            status = xQueueReceive(qGatewayToForwarder, &fData, portMAX_DELAY);
+            if(status == pdTRUE)
+            {
+                uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
+                APP_PRINT_LN("\n##################################################");
+                APP_LOG("PUSH DATA : ");
+                this->handler.pushData(fData.packet, fData.packetSize, fData.DevEUI, packet);
+                APP_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
+                APP_PRINT_LN("##################################################");
+                this->udp.writeTo(packet, PKT_MIN_SIZE + fData.packetSize, this->host, this->port);
+            }
         }
     }
     
@@ -85,9 +96,9 @@ Handler * ForwarderClass::getHandler(void){
 }
 
 void ForwarderClass::main(void){
-    printf("Packet ForwarderClass setting...\n");
+    APP_PRINT_LN("Packet ForwarderClass setting...");
     this->setup();
-    printf("Packet ForwarderClass running...\n");
+    APP_PRINT_LN("Packet ForwarderClass running...");
     this->loop();
 }
 
@@ -96,18 +107,19 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
     switch (packetType)
     {
         case PKT_PUSH_DATA:
-            /* code */
+            APP_LOG_LN("PKT_PUSH_DATA");
             break;
         case PKT_PUSH_ACK:
-            /* code */
+            APP_LOG_LN("PKT_PUSH_ACK");
             break;
         case PKT_PULL_DATA:
-            /* code */
+            APP_LOG_LN("PKT_PULL_DATA");
             break;
         case PKT_PULL_ACK:
-            /* code */
+            APP_LOG_LN("PKT_PULL_ACK");
             break;
         case PKT_PULL_RESP:
+            APP_LOG_LN("PKT_PULL_RESP");
             uint16_t tokenZ = this->handler.pullResp(data);
             uint8_t packet[PKT_MIN_SIZE + PKT_TX_ACK_DATA_SIZE];
             this->handler.txAck(tokenZ, packet);
@@ -128,10 +140,19 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
 /********************** Periodic Task Entry *************************************/
 
 void periodicTaskEntry(void * parameter){
+    APP_PRINT_LN("periodicTaskEntry");
     uint8_t packet[PKT_MIN_SIZE];
     while(true)
     {
+        APP_LOG_LN("PKT_PULL_DATA");
+        APP_LOG_LN(*Forwarder.getHost());
         Forwarder.getHandler()->pullData(packet);
+        APP_LOG("PKT : ");
+        for(int i=0; i<PKT_MIN_SIZE; i++)
+        {
+            APP_PRINTF("%02X ", packet[i]);
+        }
+        APP_PRINT_LN();
         Forwarder.getUDP()->writeTo(packet, PKT_MIN_SIZE, *(Forwarder.getHost()), Forwarder.getPort());
         delay(PULL_DATA_FREQUENCY * 1000);
     }
@@ -155,7 +176,6 @@ uint32_t Handler::hexStringToArray(const char * hexString, uint8_t *pArray) {
         hex2Bytes[0] = hexString[2*i];
         hex2Bytes[1] = hexString[2*i+1];
         pArray[i] = (uint8_t) strtol(hex2Bytes, NULL, 16);
-        printf("%d %s\n", pArray[i], hex2Bytes);
     }
     return GATEWAY_EUI_SIZE;
 }
@@ -256,15 +276,15 @@ uint32_t Handler::getDevEUI(uint8_t *pDevEUI){
 
 void printForwarderData(Forwarder_data_t *fData)
 {
-    Serial.println("\n################ ForwarderClass Data ################");
-    Serial.print ("DevEUI = ");
+    APP_PRINT_LN("\n################ Forwarder Data ################");
+    APP_LOG("DevEUI = ");
     for(int i=0; i<4; i++){
-        Serial.printf("%02X", fData->DevEUI[i]);
+        APP_PRINTF("%02X", fData->DevEUI[i]);
     }
-    Serial.println();
-    Serial.print ("Packet = ");
+    APP_PRINT("\n");
+    APP_LOG("Packet = ");
     for(int i=0; i<fData->packetSize; i++){
-        Serial.printf("%02X", fData->packet[i]);
+        APP_PRINTF("%02X", fData->packet[i]);
     }
-    Serial.println("\n##################################################");
+    APP_PRINT_LN("\n##################################################");
 }
