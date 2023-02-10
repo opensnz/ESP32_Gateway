@@ -1,7 +1,4 @@
 #include "forwarder.h"
-// Only for test : must be remove
-#include "gateway.h" 
-const char DevEUI[] = "9ff6b57d643b0681";
 
 QueueHandle_t qGatewayToForwarder = NULL;
 QueueHandle_t qForwarderToGateway = NULL;
@@ -133,7 +130,6 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
                 fData.packet[i] = data[i+4];
             }
             /* Set DevEUI */
-            hexStringToArray(DevEUI, fData.DevEUI);
             xQueueSend(qForwarderToGateway, &fData, portMAX_DELAY);
             break;
     }

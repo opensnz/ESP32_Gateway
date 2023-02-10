@@ -47,7 +47,7 @@ void GatewayClass::tLoop(void){
                     // JoinRequest needed
                     if(Encoder.joinRequest(device, packet))
                     {
-                        this->device.DevNonce += 1;
+                        device.DevNonce += 1;
                         SYSTEM_LOG_LN("JoinRequest done");
                     }else
                     {
@@ -104,7 +104,7 @@ void GatewayClass::fLoop(void){
                 JSONVar packet = JSON.parse(String(fData.packet, fData.packetSize));
                 String PHYPayload = (const char *)packet["txpk"]["data"];
                 SYSTEM_LOG("JoinAccept PHYPayload : ");SYSTEM_PRINT_LN(PHYPayload);
-                if(Encoder.joinAccept(this->device, PHYPayload))
+                if(Encoder.joinAccept(device, PHYPayload))
                 {
                     SYSTEM_LOG_LN("JoinAccept done");
                 }else
