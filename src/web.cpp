@@ -83,10 +83,13 @@ void WebClass::serverWiFiConfig(void){
             SYSTEM_PRINT_LN(p->value());
             if (p->name() == WEB_PARAM_SSID) 
             {
+                String ssid = p->value();
+                System.writeFile(WEB_PATH_SSID, ssid);
             }
             else if(p->name() == WEB_PARAM_PASS) 
             {
-
+                String pass = p->value();
+                System.writeFile(WEB_PATH_PASS, pass);
             }
         }
       }

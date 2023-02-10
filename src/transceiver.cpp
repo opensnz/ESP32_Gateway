@@ -21,7 +21,7 @@ void TransceiverClass::loop(void){
     Transceiver_data_t tData;
     while(true)
     {
-        delay(5000);
+        delay(15000);
         tData.rssi = 4;
         tData.snr = 3;
         tData.payloadSize = 200;

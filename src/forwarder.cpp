@@ -1,9 +1,12 @@
 #include "forwarder.h"
+// Only for test : must be remove
+#include "gateway.h" 
+const char DevEUI[] = "9ff6b57d643b0681";
 
 QueueHandle_t qGatewayToForwarder = NULL;
 QueueHandle_t qForwarderToGateway = NULL;
 
-ForwarderClass Forwarder = ForwarderClass(IPAddress(192, 168, 217, 62), FORWARDER_PORT_DEFAULT);
+ForwarderClass Forwarder(FORWARDER_SERVER_DEFAULT, FORWARDER_PORT_DEFAULT);
 
 ForwarderClass::ForwarderClass(IPAddress host, uint16_t port){
     this->host = host;
@@ -130,6 +133,7 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
                 fData.packet[i] = data[i+4];
             }
             /* Set DevEUI */
+            hexStringToArray(DevEUI, fData.DevEUI);
             xQueueSend(qForwarderToGateway, &fData, portMAX_DELAY);
             break;
     }
@@ -147,12 +151,6 @@ void periodicTaskEntry(void * parameter){
         SYSTEM_LOG_LN("PKT_PULL_DATA");
         SYSTEM_LOG_LN(*Forwarder.getHost());
         Forwarder.getHandler()->pullData(packet);
-        SYSTEM_LOG("PKT : ");
-        for(int i=0; i<PKT_MIN_SIZE; i++)
-        {
-            SYSTEM_PRINTF("%02X ", packet[i]);
-        }
-        SYSTEM_PRINT_LN();
         Forwarder.getUDP()->writeTo(packet, PKT_MIN_SIZE, *(Forwarder.getHost()), Forwarder.getPort());
         delay(PKT_PULL_DATA_FREQUENCY * 1000);
     }
@@ -172,12 +170,12 @@ Handler::Handler(const char * gatewayEUI){
 
 uint32_t Handler::hexStringToArray(const char * hexString, uint8_t *pArray) {
     char hex2Bytes[3]  = "FF";
-    for (int i = 0; i < GATEWAY_EUI_SIZE; i += 1) {
+    for (int i = 0; i < FORWARDER_GATEWAY_EUI_SIZE; i += 1) {
         hex2Bytes[0] = hexString[2*i];
         hex2Bytes[1] = hexString[2*i+1];
         pArray[i] = (uint8_t) strtol(hex2Bytes, NULL, 16);
     }
-    return GATEWAY_EUI_SIZE;
+    return FORWARDER_GATEWAY_EUI_SIZE;
 }
 
 uint16_t Handler::randomU16() {
@@ -264,11 +262,11 @@ uint32_t Handler::txAck(uint16_t tokenZ, uint8_t *packet){
 }
 
 uint32_t Handler::getDevEUI(uint8_t *pDevEUI){
-    for(int i=0; i<FORWARDER_DEV_EUI_SIZE; i++)
+    for(int i=0; i<DEVICE_DEV_EUI_SIZE; i++)
     {
         pDevEUI[i] = this->gatewayEUI[i];
     }
-    return FORWARDER_DEV_EUI_SIZE;
+    return DEVICE_DEV_EUI_SIZE;
 }
 
 
