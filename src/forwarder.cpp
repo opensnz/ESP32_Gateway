@@ -16,28 +16,28 @@ void ForwarderClass::setup(void){
     qForwarderToGateway = xQueueCreate(FORWARDER_QUEUE_SIZE, sizeof(Forwarder_data_t));
     if (qGatewayToForwarder == NULL)
     {
-        APP_LOGF_LN("Failed to create queue= %p", qGatewayToForwarder);
+        SYSTEM_LOGF_LN("Failed to create queue= %p", qGatewayToForwarder);
     }
     if (qForwarderToGateway == NULL)
     {
-        APP_LOGF_LN("Failed to create queue= %p", qForwarderToGateway);
+        SYSTEM_LOGF_LN("Failed to create queue= %p", qForwarderToGateway);
     }
 
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        APP_LOG_LN("WiFi Failed");
+        SYSTEM_LOG_LN("WiFi Failed");
         while(1) {
             delay(1000);
         }
     }
 
     if(udp.listen(IPAddress(0,0,0,0), this->port)) {
-        APP_LOG_LN("UDP connected");
+        SYSTEM_LOG_LN("UDP connected");
         udp.onPacket([](AsyncUDPPacket packet) {
-            APP_LOG_LN("UDP Packet Received Notification");
+            SYSTEM_LOG_LN("UDP Packet Received Notification");
             Forwarder.handle(packet.data(), packet.length());
         });
     }else{
-        APP_LOG_LN("UDP not connected");
+        SYSTEM_LOG_LN("UDP not connected");
     }
 
     xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  2000, NULL, 1, &periodicTaskHandler, 1);            
@@ -51,7 +51,7 @@ void ForwarderClass::loop(void){
     {
         if(qGatewayToForwarder == NULL)
         {
-            APP_PRINT_LN("Waiting for Queue GatewayToForwarder Init");
+            SYSTEM_PRINT_LN("Waiting for Queue GatewayToForwarder Init");
             delay(100);
         }else
         {
@@ -59,11 +59,11 @@ void ForwarderClass::loop(void){
             if(status == pdTRUE)
             {
                 uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
-                APP_PRINT_LN("\n##################################################");
-                APP_LOG("PUSH DATA : ");
+                SYSTEM_PRINT_LN("\n##################################################");
+                SYSTEM_LOG("PUSH DATA : ");
                 this->handler.pushData(fData.packet, fData.packetSize, fData.DevEUI, packet);
-                APP_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
-                APP_PRINT_LN("##################################################");
+                SYSTEM_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
+                SYSTEM_PRINT_LN("##################################################");
                 this->udp.writeTo(packet, PKT_MIN_SIZE + fData.packetSize, this->host, this->port);
             }
         }
@@ -96,9 +96,9 @@ Handler * ForwarderClass::getHandler(void){
 }
 
 void ForwarderClass::main(void){
-    APP_PRINT_LN("Packet ForwarderClass setting...");
+    SYSTEM_PRINT_LN("Packet Forwarder setting...");
     this->setup();
-    APP_PRINT_LN("Packet ForwarderClass running...");
+    SYSTEM_PRINT_LN("Packet Forwarder running...");
     this->loop();
 }
 
@@ -107,19 +107,19 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
     switch (packetType)
     {
         case PKT_PUSH_DATA:
-            APP_LOG_LN("PKT_PUSH_DATA");
+            SYSTEM_LOG_LN("PKT_PUSH_DATA");
             break;
         case PKT_PUSH_ACK:
-            APP_LOG_LN("PKT_PUSH_ACK");
+            SYSTEM_LOG_LN("PKT_PUSH_ACK");
             break;
         case PKT_PULL_DATA:
-            APP_LOG_LN("PKT_PULL_DATA");
+            SYSTEM_LOG_LN("PKT_PULL_DATA");
             break;
         case PKT_PULL_ACK:
-            APP_LOG_LN("PKT_PULL_ACK");
+            SYSTEM_LOG_LN("PKT_PULL_ACK");
             break;
         case PKT_PULL_RESP:
-            APP_LOG_LN("PKT_PULL_RESP");
+            SYSTEM_LOG_LN("PKT_PULL_RESP");
             uint16_t tokenZ = this->handler.pullResp(data);
             uint8_t packet[PKT_MIN_SIZE + PKT_TX_ACK_DATA_SIZE];
             this->handler.txAck(tokenZ, packet);
@@ -140,21 +140,21 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
 /********************** Periodic Task Entry *************************************/
 
 void periodicTaskEntry(void * parameter){
-    APP_PRINT_LN("periodicTaskEntry");
+    SYSTEM_PRINT_LN("periodicTaskEntry");
     uint8_t packet[PKT_MIN_SIZE];
     while(true)
     {
-        APP_LOG_LN("PKT_PULL_DATA");
-        APP_LOG_LN(*Forwarder.getHost());
+        SYSTEM_LOG_LN("PKT_PULL_DATA");
+        SYSTEM_LOG_LN(*Forwarder.getHost());
         Forwarder.getHandler()->pullData(packet);
-        APP_LOG("PKT : ");
+        SYSTEM_LOG("PKT : ");
         for(int i=0; i<PKT_MIN_SIZE; i++)
         {
-            APP_PRINTF("%02X ", packet[i]);
+            SYSTEM_PRINTF("%02X ", packet[i]);
         }
-        APP_PRINT_LN();
+        SYSTEM_PRINT_LN();
         Forwarder.getUDP()->writeTo(packet, PKT_MIN_SIZE, *(Forwarder.getHost()), Forwarder.getPort());
-        delay(PULL_DATA_FREQUENCY * 1000);
+        delay(PKT_PULL_DATA_FREQUENCY * 1000);
     }
 }
 
@@ -276,15 +276,15 @@ uint32_t Handler::getDevEUI(uint8_t *pDevEUI){
 
 void printForwarderData(Forwarder_data_t *fData)
 {
-    APP_PRINT_LN("\n################ Forwarder Data ################");
-    APP_LOG("DevEUI = ");
+    SYSTEM_PRINT_LN("\n################ Forwarder Data ################");
+    SYSTEM_LOG("DevEUI = ");
     for(int i=0; i<4; i++){
-        APP_PRINTF("%02X", fData->DevEUI[i]);
+        SYSTEM_PRINTF("%02X", fData->DevEUI[i]);
     }
-    APP_PRINT("\n");
-    APP_LOG("Packet = ");
+    SYSTEM_PRINT("\n");
+    SYSTEM_LOG("Packet = ");
     for(int i=0; i<fData->packetSize; i++){
-        APP_PRINTF("%02X", fData->packet[i]);
+        SYSTEM_PRINTF("%02X", fData->packet[i]);
     }
-    APP_PRINT_LN("\n##################################################");
+    SYSTEM_PRINT_LN("\n##################################################");
 }

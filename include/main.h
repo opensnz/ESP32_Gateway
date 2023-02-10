@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#include <freertos/queue.h>
 
 /*************** Task Entry Prototypes *******************/
 
@@ -14,8 +14,6 @@ void ForwarderTaskEntry(void * parameter);
 
 
 /*************** Function Prototypes *******************/
-
-void httpPOSTRequest(String serverName, String body);
 
 uint32_t hexStringToArray(const char * hexString, uint8_t *pArray);
 

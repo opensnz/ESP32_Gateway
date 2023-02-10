@@ -27,8 +27,8 @@
 #define PKT_TX_ACK        0x05
 
 
-#define PKT_TX_ACK_DATA_SIZE 27
-#define PULL_DATA_FREQUENCY  30 // every 30 seconds
+#define PKT_TX_ACK_DATA_SIZE    27
+#define PKT_PULL_DATA_FREQUENCY 30 // every 30 seconds
 
 #define GATEWAY_EUI_SIZE        8
 #define GATEWAY_EUI_DEFAULT     "52db527edd69b3df"

@@ -5,12 +5,12 @@ AsyncWebServer Server(WEB_PORT);
 
 void WebClass::initWeb(void){
 
-    if(!Storage.readFile(WEB_PATH_SSID, this->ssid))
+    if(!System.readFile(WEB_PATH_SSID, this->ssid))
     {
         // Can't read file
         this->ssid = "";
     }
-    if(!Storage.readFile(WEB_PATH_PASS, this->pass))
+    if(!System.readFile(WEB_PATH_PASS, this->pass))
     {
         // Can't read file
         this->pass = "";
@@ -20,13 +20,13 @@ void WebClass::initWeb(void){
 }
 
 void WebClass::initWiFiAP(void){
-    APP_PRINT_LN("Setting AP (Access Point)");
+    SYSTEM_PRINT_LN("Setting AP (Access Point)");
     if (!WiFi.softAPConfig(WEB_DEFAULT_IP, WEB_DEFAULT_GW, WEB_DEFAULT_SN)){
-        APP_PRINT_LN("AP Failed to configure");
+        SYSTEM_PRINT_LN("AP Failed to configure");
     }
     if(WiFi.softAP(WEB_DEFAULT_SSID, WEB_DEFAULT_PASS))
     {
-        APP_PRINT("AP IP address: ");APP_PRINT_LN(WiFi.softAPIP());
+        SYSTEM_PRINT("AP IP address: ");SYSTEM_PRINT_LN(WiFi.softAPIP());
         this->server(WIFI_AP);
     }
 }
@@ -34,12 +34,12 @@ void WebClass::initWiFiAP(void){
 void WebClass::initWiFiSTA(void){
     WiFi.mode(WIFI_STA);
     WiFi.begin(this->ssid.c_str(), this->pass.c_str());
-    APP_PRINT_LN("Connecting to WiFi...");
+    SYSTEM_PRINT_LN("Connecting to WiFi...");
 
-    APP_PRINT_LN("Failed to connect.");
+    SYSTEM_PRINT_LN("Failed to connect.");
 
     // 
-    APP_PRINT_LN("Connected.");
+    SYSTEM_PRINT_LN("Connected.");
     this->server(WIFI_AP);
 }
 
@@ -64,15 +64,15 @@ void WebClass::server(wifi_mode_t mode){
     {
         this->serverGatewayConfig();
     }
-    APP_PRINT_LN("Web static files in /");
-    Server.serveStatic("/", SPIFFS, "/");
+    SYSTEM_PRINT_LN("Web static files in /");
+    Server.serveStatic("/", FILE_SYSTEM, "/");
     Server.begin();
 }
 
 void WebClass::serverWiFiConfig(void){
     Server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        APP_PRINT_LN("/wifimanager.html");
-        request->send(SPIFFS, "/wifimanager.html", "text/html", false, wifiConfig);
+        SYSTEM_PRINT_LN("/wifimanager.html");
+        request->send(FILE_SYSTEM, "/wifimanager.html", "text/html", false, wifiConfig);
     });
     Server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
       int params = request->params();
@@ -80,7 +80,7 @@ void WebClass::serverWiFiConfig(void){
         AsyncWebParameter* p = request->getParam(i);
         if(p->isPost())
         {
-            APP_PRINT_LN(p->value());
+            SYSTEM_PRINT_LN(p->value());
             if (p->name() == WEB_PARAM_SSID) 
             {
             }
@@ -92,12 +92,12 @@ void WebClass::serverWiFiConfig(void){
       }
       request->send(200, "text/plain", "Done. Gateway will restart");
       delay(3000);
-      ESP.restart();
+      System.restart();
     });
 }
 void WebClass::serverGatewayConfig(void){
     Server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(SPIFFS, "/index.html", "text/html", false, gatewayConfig);
+        request->send(FILE_SYSTEM, "/index.html", "text/html", false, gatewayConfig);
     });
 }
 

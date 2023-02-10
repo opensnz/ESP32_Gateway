@@ -28,7 +28,7 @@ void GatewayClass::tLoop(void){
     while(true){
         if(qTransceiverToGateway == NULL)
         {
-            APP_PRINT_LN("Waiting for Queue TransceiverToGateway Init");
+            SYSTEM_PRINT_LN("Waiting for Queue TransceiverToGateway Init");
             delay(100);
         }else
         {
@@ -42,7 +42,7 @@ void GatewayClass::tLoop(void){
                 if(timestamp > 0)
                 {
                     strftime(datetime, 32, "%Y-%m-%dT%H:%M:%SZ", &receivedTimeInfo);
-                    APP_LOG_LN(datetime);
+                    SYSTEM_LOG_LN(datetime);
                 }
                 printTransceiverData(&data);
                 if(device.FCnt == 1 || device.FCnt >= 65530){
@@ -73,7 +73,7 @@ void GatewayClass::tLoop(void){
                         String payload = json["PHYPayload"];
                         packet["rxpk"][0]["size"] = (uint32_t)json["size"];
                         packet["rxpk"][0]["data"] = payload;
-                        APP_LOG("Packet : ");APP_PRINT_LN(packet);
+                        SYSTEM_LOG("Packet : ");SYSTEM_PRINT_LN(packet);
                     }
 
                     // Send Packet to LoRaWAN Server
@@ -89,19 +89,19 @@ void GatewayClass::tLoop(void){
 
                 }else
                 {
-                    APP_LOGF_LN("Device.FCnt = %d", device.FCnt);
+                    SYSTEM_LOGF_LN("Device.FCnt = %d", device.FCnt);
                 }
                 
             }else
             {
-                APP_LOG_LN("qTransceiverToGateway reception failed");
+                SYSTEM_LOG_LN("qTransceiverToGateway reception failed");
             }
         }
     }
 }
 
 void GatewayClass::fSetup(void){
-
+    
 }
 void GatewayClass::fLoop(void){
     Forwarder_data_t fData;
@@ -109,7 +109,7 @@ void GatewayClass::fLoop(void){
     while(true){
         if(qForwarderToGateway == NULL)
         {
-            APP_PRINT_LN("Waiting for Queue ForwarderToGateway Init");
+            SYSTEM_PRINT_LN("Waiting for Queue ForwarderToGateway Init");
             delay(100);
         }else
         {
@@ -125,15 +125,15 @@ GatewayClass::GatewayClass(){
 }
 
 void GatewayClass::tMain(void){
-    APP_PRINT_LN("GatewayClass tMain setting...");
+    SYSTEM_PRINT_LN("Gateway tMain setting...");
     this->tSetup();
-    APP_PRINT_LN("GatewayClass tMain running...");
+    SYSTEM_PRINT_LN("Gateway tMain running...");
     this->tLoop();
 }
 void GatewayClass::fMain(void){
-    APP_PRINT_LN("GatewayClass fMain setting...");
+    SYSTEM_PRINT_LN("Gateway fMain setting...");
     this->fSetup();
-    APP_PRINT_LN("GatewayClass fMain running...");
+    SYSTEM_PRINT_LN("Gateway fMain running...");
     this->fLoop();
 }
 
@@ -146,18 +146,18 @@ int httpPOSTRequest(String serverName, String body, String & response)
     WiFiClient client;
     HTTPClient http;
 
-    APP_PRINT_LN("\n################ Encoder Data ################");
-    APP_PRINT_LN(String("HTTP to server " + serverName).c_str());
+    SYSTEM_PRINT_LN("\n################ Encoder Data ################");
+    SYSTEM_PRINT_LN(String("HTTP to server " + serverName).c_str());
     http.begin(client, serverName);
     http.addHeader("Content-Type", "application/json");
 
     int httpResponseCode = http.POST(body);
     response = http.getString();
-    APP_LOG("HTTP POST Response code: ");
-    APP_PRINT_LN(httpResponseCode);
-    APP_LOG("HTTP POST Response: ");
-    APP_PRINT_LN(response);
-    APP_PRINT_LN("##################################################");
+    SYSTEM_LOG("HTTP POST Response code: ");
+    SYSTEM_PRINT_LN(httpResponseCode);
+    SYSTEM_LOG("HTTP POST Response: ");
+    SYSTEM_PRINT_LN(response);
+    SYSTEM_PRINT_LN("##################################################");
     // Free resources
     http.end();
     return httpResponseCode;
@@ -186,7 +186,7 @@ uint32_t arrayToHexString(const uint8_t *pArray, uint32_t size, char * hexString
 }
 
 void timeAdjustmentNotification(struct timeval * t){
-    APP_PRINT_LN("Got time adjustment from NTP!");
+    SYSTEM_PRINT_LN("Got time adjustment from NTP!");
 }
 
 

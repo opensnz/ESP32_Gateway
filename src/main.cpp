@@ -1,9 +1,5 @@
-#include <Arduino.h>
-#include <freertos/queue.h>
-#include <HTTPClient.h>
-#include <Arduino_JSON.h>
 #include "main.h"
-#include "Storage.h"
+#include "system.h"
 #include "web.h"
 #include "gateway.h"
 #include "transceiver.h"
@@ -15,14 +11,17 @@ TaskHandle_t hTGateway    = NULL;
 TaskHandle_t hFGateway    = NULL;
 
 void setup() {
-    // put your setup code here, to run once:
-    Serial.begin(115200);
-    while(!Storage.begin())
+    while(!System.begin())
     {
+        // System not started, retry after 10ms
         delay(10);
     }
+    // System started fine
+    // Start Web Server
     Web.begin();
     delay(100);
+
+    // Start other Tasks
     xTaskCreatePinnedToCore(TGatewayTaskEntry, "tGatewayTask",  10000, NULL, 1, &hTGateway, 0);
     delay(100);          
     xTaskCreatePinnedToCore(FGatewayTaskEntry, "fGatewayTask",  10000, NULL, 1, &hFGateway, 1);
@@ -43,22 +42,22 @@ void loop() {
 /*********************** Task Entry ************************/
 
 void TGatewayTaskEntry(void * parameter){
-    APP_PRINT_LN("TGatewayTaskEntry");
+    SYSTEM_PRINT_LN("TGatewayTaskEntry");
     Gateway.tMain();
 }
 
 void FGatewayTaskEntry(void * parameter){
-    APP_PRINT_LN("FGatewayTaskEntry");
+    SYSTEM_PRINT_LN("FGatewayTaskEntry");
     Gateway.fMain();
 }
 
 void TransceiverTaskEntry(void * parameter){
-    APP_PRINT_LN("TransceiverTaskEntry");
+    SYSTEM_PRINT_LN("TransceiverTaskEntry");
     Transceiver.main();
 }
 
 void ForwarderTaskEntry(void * parameter){
-    APP_PRINT_LN("ForwarderTaskEntry");
+    SYSTEM_PRINT_LN("ForwarderTaskEntry");
     Forwarder.main();
 }
 

@@ -4,11 +4,11 @@
 #include <Arduino.h>
 #include <time.h>
 
-#define  APP_LOG_ENABLED  1
+#define  SYSTEM_LOG_ENABLED  1
 
-#ifdef APP_LOG_ENABLED
-    #if APP_LOG_ENABLED
-        #define APP_LOGF(...) do{ \
+#ifdef SYSTEM_LOG_ENABLED
+    #if SYSTEM_LOG_ENABLED
+        #define SYSTEM_LOGF(...) do{ \
             struct tm timeinfo;\
             if(getLocalTime(&timeinfo)){\
                 Serial.print(&timeinfo, "%A, %B %d %Y %H:%M:%S --> ");\
@@ -19,7 +19,7 @@
             }\
         }while(0)
 
-        #define APP_LOGF_LN(...) do{ \
+        #define SYSTEM_LOGF_LN(...) do{ \
             struct tm timeinfo;\
             if(getLocalTime(&timeinfo)){\
                 Serial.print(&timeinfo, "%A, %B %d %Y %H:%M:%S --> ");\
@@ -32,7 +32,7 @@
             }\
         }while(0)
     
-        #define APP_LOG(log) do{ \
+        #define SYSTEM_LOG(log) do{ \
             struct tm timeinfo;\
             if(getLocalTime(&timeinfo)){\
                 Serial.print(&timeinfo, "%A, %B %d %Y %H:%M:%S --> ");\
@@ -43,7 +43,7 @@
             }\
         }while(0)
 
-        #define APP_LOG_LN(log) do{ \
+        #define SYSTEM_LOG_LN(log) do{ \
             struct tm timeinfo;\
             if(getLocalTime(&timeinfo)){\
                 Serial.print(&timeinfo, "%A, %B %d %Y %H:%M:%S --> ");\
@@ -54,32 +54,32 @@
             }\
         }while(0)
 
-        #define APP_PRINTF(...)  Serial.printf(__VA_ARGS__)
+        #define SYSTEM_PRINTF(...)  Serial.printf(__VA_ARGS__)
 
-        #define APP_PRINTF_LN(...)  Serial.printf(__VA_ARGS__);Serial.println()
+        #define SYSTEM_PRINTF_LN(...)  Serial.printf(__VA_ARGS__);Serial.println()
 
-        #define APP_PRINT(log)  Serial.print(log)
+        #define SYSTEM_PRINT(log)  Serial.print(log)
 
-        #define APP_PRINT_LN(log)  Serial.println(log)
+        #define SYSTEM_PRINT_LN(log)  Serial.println(log)
     #else
-        #define APP_LOGF(...)
-        #define APP_LOGF_LN(...)
-        #define APP_LOG(log)
-        #define APP_LOG_LN(log)
-        #define APP_PRINTF(...)
-        #define APP_PRINTF_LN(...)
-        #define APP_PRINT(log)
-        #define APP_PRINT_LN(log)
+        #define SYSTEM_LOGF(...)
+        #define SYSTEM_LOGF_LN(...)
+        #define SYSTEM_LOG(log)
+        #define SYSTEM_LOG_LN(log)
+        #define SYSTEM_PRINTF(...)
+        #define SYSTEM_PRINTF_LN(...)
+        #define SYSTEM_PRINT(log)
+        #define SYSTEM_PRINT_LN(log)
     #endif
 #else
-    #define APP_LOGF(...)
-    #define APP_LOGF_LN(...)
-    #define APP_LOG(log)
-    #define APP_LOG_LN(log)
-    #define APP_PRINT(...)
-    #define APP_PRINT_LN(...) 
-    #define APP_PRINT(log)
-    #define APP_PRINT_LN(log)
+    #define SYSTEM_LOGF(...)
+    #define SYSTEM_LOGF_LN(...)
+    #define SYSTEM_LOG(log)
+    #define SYSTEM_LOG_LN(log)
+    #define SYSTEM_PRINT(...)
+    #define SYSTEM_PRINT_LN(...) 
+    #define SYSTEM_PRINT(log)
+    #define SYSTEM_PRINT_LN(log)
 #endif
 
 
