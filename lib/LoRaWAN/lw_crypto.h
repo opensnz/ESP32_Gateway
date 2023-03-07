@@ -27,7 +27,7 @@
 #define __LW_CRYPTO__
 
 #ifdef __cplusplus
-	extern "C" {
+    extern "C" {
 #endif
 
 #include <stdbool.h>
@@ -98,9 +98,9 @@ typedef struct{
     uint16_t len;
     lw_devaddr_t *devaddr;
     uint32_t fcnt32;
-	uint16_t confFCnt;
-	uint8_t txDr;
-	uint8_t txCh;
+    uint16_t confFCnt;
+    uint8_t txDr;
+    uint8_t txCh;
 }lw_key_mic11_t;
 
 void lw_msg_mic(lw_mic_t* mic, lw_key_t *key);
@@ -115,7 +115,7 @@ void lw_get_skeys_11(uint8_t *FNwkSntKey, uint8_t* SNwkSIntKey, uint8_t* NwkSEnc
 void encrypt_fopts(uint8_t *data, uint8_t dataLen, uint8_t *key, bool aFCntDown, bool isUplink, lw_devaddr_t *devaddr, uint32_t cnt);
 
 #ifdef __cplusplus
-	}
+    }
 #endif
 
 #endif /* __LW_CRYPTO__ */

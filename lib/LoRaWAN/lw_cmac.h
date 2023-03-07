@@ -37,7 +37,7 @@ DEALINGS WITH THE SOFTWARE
 #define __CMAC__
 
 #ifdef __cplusplus
-	extern "C" {
+    extern "C" {
 #endif
 
 #include "lw_aes.h"
@@ -67,7 +67,7 @@ void     AES_CMAC_Final(u_int8_t digest[AES_CMAC_DIGEST_LENGTH], AES_CMAC_CTX  *
 //__END_DECLS
 
 #ifdef __cplusplus
-	}
+    }
 #endif
 
 #endif /* __CMAC__ */

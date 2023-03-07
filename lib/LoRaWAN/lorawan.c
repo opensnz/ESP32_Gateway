@@ -16,19 +16,29 @@ static void convertInPlaceEUI64bufLittleEndian(uint8_t *eui8buf);
 static uint8_t LoRaWAN_DataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t bufferSize, bool isConfirmed);
 
 
+MHDR_MType_t LoRaWAN_MessageType(uint8_t* buffer, uint8_t bufferSize)
+{
+    if(bufferSize < 1)
+    {
+        return MTYPE_PROPRIETARY;
+    }
+    return ((MHDR_MType_t)(buffer[0] >> 5));
+
+}
+
 uint8_t LoRaWAN_JoinRequest(JoinRequest_t * packet, uint8_t* buffer, uint8_t bufferSize)
 {
     uint8_t index = 0;
-	lw_mic_t mic;     	// 4 byte lorawan message integrity code (last bytes of PHYPayload)
-	lw_key_t lw_key; 	// lorawan AES de/encrypt input struct (see crypto.c for details)
+    lw_mic_t mic;     	// 4 byte lorawan message integrity code (last bytes of PHYPayload)
+    lw_key_t lw_key; 	// lorawan AES de/encrypt input struct (see crypto.c for details)
 
-	if(bufferSize < 4)
+    if(bufferSize < 4)
     {
-		return index;
-	}
+        return index;
+    }
 
-	// MHDR
-	buffer[index++] = (MTYPE_JOIN_REQUEST << 5) | (LORAWAN_R1);
+    // MHDR
+    buffer[index++] = (MTYPE_JOIN_REQUEST << 5) | (LORAWAN_R1);
 
     if(bufferSize < index + 8)
     {
@@ -70,8 +80,8 @@ uint8_t LoRaWAN_JoinRequest(JoinRequest_t * packet, uint8_t* buffer, uint8_t buf
 bool LoRaWAN_JoinAccept(JoinAccept_t * packet, uint8_t* buffer, uint8_t bufferSize)
 {
     uint8_t index;
-	lw_mic_t mic;        // calculated mic
-	lw_key_t lw_key;
+    lw_mic_t mic;        // calculated mic
+    lw_key_t lw_key;
 
     // MHDR(1) + [sizeof(JoinAccept_t)(12) + optional CFlist(16)] + MIC(4), max len: 33 byte
     if(bufferSize == 17)
@@ -190,16 +200,16 @@ uint32_t LoRaWAN_Binary_To_Base64(const uint8_t * in, int size, char * out, int 
 static uint8_t LoRaWAN_DataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t bufferSize, bool isConfirmed)
 {
     uint8_t index = 0;
-	lw_mic_t mic;
-	lw_key_t lw_key;
+    lw_mic_t mic;
+    lw_key_t lw_key;
 
-	if(bufferSize < 4)
+    if(bufferSize < 4)
     {
-		return index;
-	}
+        return index;
+    }
 
-	// MHDR
-	if(isConfirmed)
+    // MHDR
+    if(isConfirmed)
     {
         buffer[index++] = (MTYPE_CONFIRMED_DATA_UP << 5) | (LORAWAN_R1);
     }else
@@ -207,15 +217,15 @@ static uint8_t LoRaWAN_DataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t bu
         buffer[index++] = (MTYPE_UNCONFIRMED_DATA_UP << 5) | (LORAWAN_R1);
     }
 
-	// FHDR
-	if (bufferSize < index + 4) {
-		return 0;
-	}
-	buffer[index++] = (uint8_t) (packet->FHDR.DevAddr & 0xFF);
-	buffer[index++] = (uint8_t) (packet->FHDR.DevAddr >> 8);
-	buffer[index++] = (uint8_t) (packet->FHDR.DevAddr >> 16);
-	buffer[index++] = (uint8_t) (packet->FHDR.DevAddr >> 24);
-	lw_key.devaddr.data = packet->FHDR.DevAddr;
+    // FHDR
+    if (bufferSize < index + 4) {
+        return 0;
+    }
+    buffer[index++] = (uint8_t) (packet->FHDR.DevAddr & 0xFF);
+    buffer[index++] = (uint8_t) (packet->FHDR.DevAddr >> 8);
+    buffer[index++] = (uint8_t) (packet->FHDR.DevAddr >> 16);
+    buffer[index++] = (uint8_t) (packet->FHDR.DevAddr >> 24);
+    lw_key.devaddr.data = packet->FHDR.DevAddr;
 
     // Uplink packet
     lw_key.link = LW_UPLINK;
@@ -228,41 +238,41 @@ static uint8_t LoRaWAN_DataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t bu
                         | (packet->FHDR.FCtrl.uplink.ACK << 5)
                         | (packet->FHDR.FCtrl.uplink.FOptsLen);
 
-	
-	if(bufferSize < index + 2)
+    
+    if(bufferSize < index + 2)
     {
-		return 0;
-	}
+        return 0;
+    }
     // Little endian
-	buffer[index++] = (uint8_t) (packet->FHDR.FCnt16 & 0xFF);
-	buffer[index++] = (uint8_t) (packet->FHDR.FCnt16 >> 8);
-	lw_key.fcnt32 = packet->FHDR.FCnt16;
+    buffer[index++] = (uint8_t) (packet->FHDR.FCnt16 & 0xFF);
+    buffer[index++] = (uint8_t) (packet->FHDR.FCnt16 >> 8);
+    lw_key.fcnt32 = packet->FHDR.FCnt16;
 
-	// Encrypt payload (if present and FPort > 0)
-	if (packet->payloadSize != 0 && packet->FPort != 0)
+    // Encrypt payload (if present and FPort > 0)
+    if (packet->payloadSize != 0 && packet->FPort != 0)
     {
-		if(bufferSize < index + 1)
+        if(bufferSize < index + 1)
         {
-			return 0;
-		}
-		buffer[index++] = packet->FPort;
+            return 0;
+        }
+        buffer[index++] = packet->FPort;
         lw_key.AESkey = packet->AppSKey;
-		lw_key.in = packet->payload;
-		lw_key.len = packet->payloadSize;
+        lw_key.in = packet->payload;
+        lw_key.len = packet->payloadSize;
 
-		int cryptedPayloadSize = lw_encrypt(buffer + index, &lw_key);
-		index += cryptedPayloadSize;
-		if(bufferSize < index)
+        int cryptedPayloadSize = lw_encrypt(buffer + index, &lw_key);
+        index += cryptedPayloadSize;
+        if(bufferSize < index)
         {
-			return 0;
-		}
-	}
+            return 0;
+        }
+    }
 
-	// 4 byte MIC
-	if (bufferSize < index + 4)
+    // 4 byte MIC
+    if (bufferSize < index + 4)
     {
-		return 0;
-	}
+        return 0;
+    }
 
     lw_key.AESkey = packet->NwkSKey;
     lw_key.in = buffer;
@@ -277,19 +287,19 @@ static uint8_t LoRaWAN_DataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t bu
 
 
 static uint16_t parseUInt16LittleEndian(const uint8_t *bytes) {
-	return (((uint16_t) bytes[0]) << 0u) | (((uint16_t) bytes[1]) << 8u);
+    return (((uint16_t) bytes[0]) << 0u) | (((uint16_t) bytes[1]) << 8u);
 }
 
 static uint32_t parseUInt32LittleEndian(const uint8_t *bytes) {
-	return (((uint32_t) bytes[0]) << 0u) | (((uint32_t) bytes[1]) << 8u) | (((uint32_t) bytes[2]) << 16u) | (((uint32_t) bytes[3]) << 24u);
+    return (((uint32_t) bytes[0]) << 0u) | (((uint32_t) bytes[1]) << 8u) | (((uint32_t) bytes[2]) << 16u) | (((uint32_t) bytes[3]) << 24u);
 }
 
 static void convertInPlaceEUI64bufLittleEndian(uint8_t *eui8buf) {
-	uint8_t tmp[8];
-	if (eui8buf) {
-		memcpy(tmp, eui8buf, 8);
-		for (int i = 0; i < 8; i++) {
-			eui8buf[i] = tmp[7 - i];
-		}
-	}
+    uint8_t tmp[8];
+    if (eui8buf) {
+        memcpy(tmp, eui8buf, 8);
+        for (int i = 0; i < 8; i++) {
+            eui8buf[i] = tmp[7 - i];
+        }
+    }
 }

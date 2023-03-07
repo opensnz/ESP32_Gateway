@@ -18,7 +18,7 @@ Maintainer: Sylvain Miermont
 #define __BASE64__
 
 #ifdef __cplusplus
-	extern "C" {
+    extern "C" {
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -62,7 +62,7 @@ int bin_to_b64(const uint8_t * in, int size, char * out, int max_len);
 int b64_to_bin(const char * in, int size, uint8_t * out, int max_len);
 
 #ifdef __cplusplus
-	}
+    }
 #endif
 
 #endif // __BASE64__

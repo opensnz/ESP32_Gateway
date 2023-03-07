@@ -3,7 +3,7 @@
 #define __LORAWAN__
 
 #ifdef __cplusplus
-	extern "C" {
+    extern "C" {
 #endif
 
 #include <stdint.h>
@@ -120,8 +120,9 @@ typedef union {
 
 
 extern LoRaWAN_Packet_t LoRaWAN;
+extern char Base64Buffer[300];
 
-
+MHDR_MType_t LoRaWAN_MessageType(uint8_t* buffer, uint8_t bufferSize);
 uint8_t LoRaWAN_JoinRequest(JoinRequest_t * packet, uint8_t* buffer, uint8_t bufferSize);
 bool LoRaWAN_JoinAccept(JoinAccept_t * packet, uint8_t* buffer, uint8_t bufferSize);
 uint8_t LoRaWAN_UnconfirmedDataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t bufferSize);
@@ -132,7 +133,7 @@ uint32_t LoRaWAN_Base64_To_Binary(const char * in, int size, uint8_t * out, int 
 uint32_t LoRaWAN_Binary_To_Base64(const uint8_t * in, int size, char * out, int max_len); 
 
 #ifdef __cplusplus
-	}
+    }
 #endif
 
 #endif // __LORAWAN__

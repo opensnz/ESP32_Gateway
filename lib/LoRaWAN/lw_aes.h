@@ -32,7 +32,7 @@
 #define AES_H
 
 #ifdef __cplusplus
-	extern "C" {
+    extern "C" {
 #endif
 
 #if 1
@@ -164,7 +164,7 @@ void AES_decrypt_256( const unsigned char in[N_BLOCK],
 #endif
 
 #ifdef __cplusplus
-	}
+    }
 #endif
 
 #endif
