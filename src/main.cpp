@@ -1,14 +1,10 @@
 #include "main.h"
 #include "system.h"
 #include "web.h"
+#include "common.h"
 #include "gateway.h"
 #include "transceiver.h"
 #include "forwarder.h"
-
-TaskHandle_t hTransceiver = NULL;
-TaskHandle_t hForwarder   = NULL;
-TaskHandle_t hTGateway    = NULL;
-TaskHandle_t hFGateway    = NULL;
 
 void setup() {
     while(!System.begin())
@@ -22,13 +18,15 @@ void setup() {
     delay(100);
 
     // Start other Tasks
-    xTaskCreatePinnedToCore(TGatewayTaskEntry, "tGatewayTask",  10000, NULL, 1, &hTGateway, 0);
-    delay(100);          
-    xTaskCreatePinnedToCore(FGatewayTaskEntry, "fGatewayTask",  10000, NULL, 1, &hFGateway, 1);
-    delay(100);
-    xTaskCreatePinnedToCore(TransceiverTaskEntry, "transceiverTask",  10000, NULL, 1, &hTransceiver, 0);
+
+    xTaskCreatePinnedToCore(ForwarderTaskEntry,   "forwarderTask",    10000, NULL, TASK_PRIORITY, &hForwarder, 1);
     delay(100);           
-    xTaskCreatePinnedToCore(ForwarderTaskEntry,   "forwarderTask",    10000, NULL, 1, &hForwarder, 1);
+    xTaskCreatePinnedToCore(FGatewayTaskEntry, "fGatewayTask", 10000, NULL, TASK_PRIORITY, &hFGateway, 1);
+    delay(100);
+    xTaskCreatePinnedToCore(TGatewayTaskEntry, "tGatewayTask", 10000, NULL, TASK_PRIORITY, &hTGateway, 0);
+    delay(100);
+    xTaskCreatePinnedToCore(TransceiverTaskEntry, "transceiverTask",  10000, NULL, TASK_PRIORITY, &hTransceiver, 0);
+    
 }
 
 void loop() {

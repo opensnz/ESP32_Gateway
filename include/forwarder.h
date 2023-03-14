@@ -15,7 +15,7 @@
 #define bitSet(value, bit)                  ((value) |= (1UL << (bit)))
 #define bitClear(value, bit)                ((value) &= ~(1UL << (bit)))
 #define bitWrite(value, bit, bitvalue)      ((bitvalue) ? bitSet(value, bit) : \
-                                            			  bitClear(value, bit))
+                                                          bitClear(value, bit))
 
 // Constants for Semtech UDP protocol
 #define PROTOCOL_VERSION  0x02
@@ -32,16 +32,15 @@
 #define PKT_PULL_DATA_FREQUENCY 30 // every 30 seconds
 
 #define FORWARDER_GATEWAY_EUI_SIZE        8
-#define FORWARDER_GATEWAY_EUI_DEFAULT     "52db527edd69b3df"
-#define FORWARDER_SERVER_DEFAULT          IPAddress(192, 168, 217, 62)
+#define FORWARDER_GATEWAY_FILE            "/gateway.json"
+#define FORWARDER_HOST_DEFAULT            IPAddress(192, 168, 10, 67)
 #define FORWARDER_PORT_DEFAULT            1700
 
-#define FORWARDER_QUEUE_SIZE    10
+#define FORWARDER_QUEUE_SIZE    DEVICE_TOTAL
 
 
 typedef struct forwarder_data_t{
-    uint8_t DevEUI[DEVICE_DEV_EUI_SIZE];
-	uint32_t packetSize;
+    uint32_t packetSize;
     uint8_t packet[PKT_MAX_SIZE];
 } Forwarder_data_t;
 
@@ -49,19 +48,31 @@ typedef struct forwarder_data_t{
 class Handler {
 private:
     uint8_t  gatewayEUI[FORWARDER_GATEWAY_EUI_SIZE];
-    std::map<uint16_t, uint8_t[DEVICE_DEV_EUI_SIZE]> mapping;
     uint16_t tokenX;
     uint16_t tokenY;
     uint16_t tokenZ;
-
-    uint32_t hexStringToArray(const char * hexString, uint8_t * pArray);
-
+    
     uint16_t randomU16();
 
 public:
-	Handler(const char * gatewayEUI);
 
-    void setGatewayEUI(const char * gatewayEUI);
+    float gatewayLong;
+    float gatewayLati;
+    uint32_t gatewayAlti;
+    uint32_t statTimestamp;
+    uint32_t statInterval;
+    uint32_t aliveInterval;
+    uint32_t loraRxNb;
+    uint32_t loraTxNb;
+    uint32_t pktRxNb;
+    uint32_t pktTxNb;
+    uint32_t pktAckNb;
+
+    Handler();
+
+    void setGatewayID(String id);
+    
+    uint32_t getGatewayID(uint8_t * pGatewayEUI);
 
     bool validateTokenX(const uint8_t *data);
 
@@ -69,47 +80,45 @@ public:
 
     uint16_t saveTokenZ(const uint8_t *data);
 
-	uint32_t pushData(const uint8_t *data, uint32_t size, const uint8_t * DevEUI,  uint8_t *packet);
+    uint32_t pushData(const uint8_t *data, uint32_t size, uint8_t *packet);
 
-	bool pushAck(const uint8_t *data);
+    bool pushAck(const uint8_t *data);
 
-	uint32_t pullData(uint8_t *packet);
+    uint32_t pullData(uint8_t *packet);
 
-	bool pullAck(const uint8_t *data);
+    bool pullAck(const uint8_t *data);
 
-	uint16_t pullResp(const uint8_t *data);
+    uint16_t pullResp(const uint8_t *data);
 
-	uint32_t txAck(uint16_t tokenZ, uint8_t *packet);
+    uint32_t txAck(uint16_t tokenZ, uint8_t *packet);
 
-	uint32_t getDevEUI(uint8_t * pDevEUI);
-
+    uint32_t pushStat(uint8_t *packet);
 };
 
 
 
 class ForwarderClass {
 private:
-	IPAddress host;
-	uint16_t port;
-	Handler handler = Handler(FORWARDER_GATEWAY_EUI_DEFAULT);
-	AsyncUDP udp;
-	TaskHandle_t periodicTaskHandler = NULL;
-	
-	
+    IPAddress host;
+    uint16_t port;
+    Handler handler = Handler();
+    AsyncUDP udp;
+    TaskHandle_t periodicTaskHandler = NULL;
 
-	void setup(void);
-	void loop(void);
+    void setup(void);
+    void loop(void);
 
 public:
-	ForwarderClass(IPAddress host, uint16_t port = FORWARDER_PORT_DEFAULT);
+    ForwarderClass(IPAddress host, uint16_t port = FORWARDER_PORT_DEFAULT);
+    bool loadConfig(void);
     void handle(const uint8_t * data, uint32_t size);
-	void setHost(IPAddress host);
-	void setPort(uint16_t port);
-	IPAddress * getHost();
-	uint16_t getPort();
-	AsyncUDP * getUDP(void);
-	Handler * getHandler(void);
-	void main(void);
+    void setHost(IPAddress host);
+    void setPort(uint16_t port);
+    IPAddress * getHost();
+    uint16_t getPort();
+    AsyncUDP * getUDP(void);
+    Handler * getHandler(void);
+    void main(void);
 
 
 };
@@ -118,7 +127,10 @@ public:
 
 extern QueueHandle_t qGatewayToForwarder;
 extern QueueHandle_t qForwarderToGateway;
+extern TaskHandle_t hForwarder;
 extern ForwarderClass Forwarder;
+
+
 
 
 /*********************** Periodic Task Entry ************************/

@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <SPIFFS.h>
-#include <LittleFS.h>
+//#include <LittleFS.h>
 #include "log.h"
 
 #define SYSTEM_LOG_BAUDRATE  115200
@@ -28,8 +28,13 @@ private:
 
 public:
     bool begin(void);
-    bool readFile(const char * path, String & content);
-    bool writeFile(const char * path, String & content);
+    bool exists(String path);
+    bool readFile(String path, String & content);
+    bool writeFile(String path, String & content);
+    bool removeFile(String path);
+    bool readFile(String path, uint8_t *pContent, uint32_t size, uint32_t pos = 0);
+    bool writeFile(String path, uint8_t *pContent, uint32_t size, uint32_t pos = 0);
+    bool getSystemInfo(String & info);
     void restart(void);
 };
 

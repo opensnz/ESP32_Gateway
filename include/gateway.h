@@ -8,18 +8,16 @@
 #include <time.h>
 #include <sntp.h>
 #include "device.h"
-#include "transceiver.h"
-#include "forwarder.h"
-#include "encoder.h"
 
 
-#define GATEWAY_NTP_SERVER_1     "pool.ntp.org"
-#define GATEWAY_NTP_SERVER_2     "time.nist.gov"
-#define GATEWAY_GMT_OFFSET_SEC   0
-#define GATEWAY_DAY_OFFSET_SEC   0
-#define GATEWAY_GPS_START_TIMESTAMP 315964800 // January 6, 1980, 00:00:00 (seconds)
+#define GATEWAY_NTP_SERVER_1           "pool.ntp.org"
+#define GATEWAY_NTP_SERVER_2           "time.nist.gov"
+#define GATEWAY_GMT_OFFSET_SEC         0
+#define GATEWAY_DAY_OFFSET_SEC         0
+#define GATEWAY_GPS_START_TIMESTAMP    315964800 // January 6, 1980, 00:00:00 (seconds)
+#define GATEWAY_JOIN_REQUEST_FREQUENCY 86400  // 1 day = 86400s  
 
-
+#define GATEWAY_QUEUE_SIZE             DEVICE_TOTAL
 
 class GatewayClass {
 
@@ -30,38 +28,25 @@ private:
 
     void fSetup(void);
     void fLoop(void);
-
-    bool joinRequestPacket(Device_data_t & device, JSONVar & packet);
-    bool joinAcceptPacket(Device_data_t & device, JSONVar & packet);
-    bool unconfirmedDataUpPacket(Device_data_t & device, JSONVar & packet);
-    bool unconfirmedDataDownPacket(Device_data_t & device, JSONVar & packet);
-    bool confirmedDataUpPacket(Device_data_t & device, JSONVar & packet);
-    bool confirmedDataDownPacket(Device_data_t & device, JSONVar & packet);
     
 public:
-    GatewayClass();
-    Device_data_t device;
+
+    TaskHandle_t joinTaskHandler;
+    SemaphoreHandle_t semaphore;
+
     void tMain(void);
     void fMain(void);
 
+    bool forward(JSONVar & packet);
+    
 };
 
 /**************** Exported Global Variables *******************/
 
+extern TaskHandle_t hTGateway;
+extern TaskHandle_t hFGateway;
 extern GatewayClass Gateway;
 
-
-
-/*************** Global Function Prototypes *******************/
-
-uint32_t hexStringToArray(const char * hexString, uint8_t *pArray);
-
-uint32_t arrayToHexString(const uint8_t *pArray, uint32_t size, char * hexString);
-
-void timeAdjustmentNotification(struct timeval *t);
-
-void genericPacket(JSONVar & packet);
-
-time_t getTime(struct tm * timeinfo);
+void joinTaskEntry(void * parameter);
 
 #endif /* __GATEWAY_H__ */

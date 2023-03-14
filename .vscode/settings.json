@@ -53,6 +53,7 @@
         "lw_aes.h": "c",
         "lw_cmac.h": "c",
         "string.h": "c",
-        "lw_base64.h": "c"
+        "lw_base64.h": "c",
+        "lorawan.h": "c"
     }
 }

@@ -1,36 +1,77 @@
 #include "transceiver.h"
+#include "common.h"
+#include "system.h"
+#include "lorawan.h"
 
 QueueHandle_t qTransceiverToGateway = NULL;
+TaskHandle_t  hTransceiver = NULL;
 TransceiverClass Transceiver = TransceiverClass(LORA_FREQUENCY_DEFAULT);
 
 void TransceiverClass::setup(void){
+    vTaskPrioritySet(hTransceiver, TASK_PRIORITY+1);
     qTransceiverToGateway = xQueueCreate(TRANSCEIVER_QUEUE_SIZE, sizeof(Transceiver_data_t));
     if (qTransceiverToGateway == NULL){
         SYSTEM_LOGF("Failed to create queue= %p\n", qTransceiverToGateway);
     }
+
     LoRa.setPins(LORA_CS_PIN, LORA_RESET_PIN, LORA_IRQ_PIN);
-    if (!LoRa.begin(868E6)) {
+    if (!LoRa.begin(LORA_FREQUENCY_DEFAULT)) {
         SYSTEM_LOG("Starting LoRa failed!");
-        while (1);
+        while(1);
     }
     LoRa.onReceive(onReceiveLoRaNotification);
+    LoRa.receive();
 }
 
 
 void TransceiverClass::loop(void){
     Transceiver_data_t tData;
+    uint32_t packetSize;
+    String path;
     while(true)
     {
-        delay(15000);
-        tData.rssi = 4;
-        tData.snr = 3;
-        tData.payloadSize = 200;
-        // read packet
-        for (int i = 0; i < 200; i++) {
-            tData.payload[i] = i;
-        }
-        if(qTransceiverToGateway != NULL){
-            xQueueSend(qTransceiverToGateway, &tData, portMAX_DELAY);
+
+        xTaskNotifyWait(0x00,            /* Don't clear any notification bits on entry. */
+                        ULONG_MAX,       /* Reset the notification value to 0 on exit. */
+                        &packetSize,     /* Notified value pass out in packetSize. */
+                        portMAX_DELAY ); /* Block indefinitely. */
+        if(packetSize > DEVICE_DEV_EUI_SIZE + 4)
+        {
+            tData.rssi = LoRa.packetRssi();
+            tData.snr = LoRa.packetSnr();
+            char payload[packetSize];
+            memset(payload, 0x00, packetSize);
+            // read packet
+            LoRa.read(); // NetID
+            LoRa.read(); // MsgID
+            for (int i = 0; i < packetSize-4; i++) {
+                payload[i] = (char)LoRa.read();
+            }
+            LoRa.read(); // EndPayload
+            LoRa.read(); // EndMsg
+            SYSTEM_PRINT_LN(payload);
+            if(packetSize%4 == 0 && this->isBase64(payload))
+            {
+                tData.payloadSize = LoRaWAN_Base64_To_Binary(payload, packetSize-4, tData.payload, DEVICE_PAYLOAD_MAX_SIZE);
+                arrayToHexString(tData.payload, DEVICE_DEV_EUI_SIZE, path);
+                path = String("/") + path + DEVICE_FILE_INFO_EXT;
+                if(System.exists(path))
+                {
+                    memcpy(tData.DevEUI, tData.payload, DEVICE_DEV_EUI_SIZE);
+                    memcpy(tData.payload, &tData.payload[DEVICE_DEV_EUI_SIZE], tData.payloadSize-DEVICE_DEV_EUI_SIZE);
+                    printTransceiverData(&tData);
+                    if(qTransceiverToGateway != NULL)
+                    {
+                        xQueueSend(qTransceiverToGateway, &tData, portMAX_DELAY);
+                    }
+                }else
+                {
+                    SYSTEM_PRINT_LN("Device not configured");
+                }
+            }else
+            {
+                SYSTEM_PRINT_LN("Incorrect Frame");
+            }
         }
     }
 }
@@ -45,23 +86,41 @@ void TransceiverClass::main(void){
     this->loop();
 }
 
+bool TransceiverClass::isBase64(const char * data)
+{
+    uint8_t i = 0;
+    while(data[i] != '\0')
+    {
+        if(data[i] >= '0' && data[i] <= '9')
+        {
+            // 0 - 9
+        }else if(data[i] >= 'A' && data[i] <= 'Z')
+        {
+            // A - Z
+        }
+        else if(data[i] >= 'a' && data[i] <= 'z')
+        {
+            // a - z
+        }
+        else if(data[i] == '/' || data[i] == '=' || data[i] == '+')
+        {
+            // Special characters 
+        }
+        else
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
 
 
 /*********************** Global Function Implementations ************************/
 
 void onReceiveLoRaNotification(int packetSize){
-    Transceiver_data_t tData;
-    tData.rssi = LoRa.packetRssi();
-    tData.snr = LoRa.packetSnr();
-    tData.payloadSize = packetSize;
-    // read packet
-    for (int i = 0; i < packetSize; i++) {
-        tData.payload[i] = LoRa.read();
-    }
-    //printTransceiverData(&tData);
-    if(qTransceiverToGateway != NULL){
-        xQueueSend(qTransceiverToGateway, &tData, (TickType_t)0);
-    }
+    xTaskNotify(hTransceiver, packetSize, eNotifyAction::eSetValueWithOverwrite);
 }
 
 
@@ -69,12 +128,12 @@ void printTransceiverData(Transceiver_data_t *tData)
 {
     SYSTEM_PRINT_LN("\n################ Transceiver Data ################");
     SYSTEM_LOG ("DevEUI = ");
-    for(int i=0; i<4; i++){
+    for(int i=0; i<DEVICE_DEV_EUI_SIZE; i++){
         SYSTEM_PRINTF("%02X", tData->DevEUI[i]);
     }
     SYSTEM_PRINT("\n");
     SYSTEM_LOGF_LN("RSSI   = %d", tData->rssi);
-    SYSTEM_LOGF_LN("SNR    = %d", tData->snr);
+    SYSTEM_LOGF_LN("SNR    = %f", tData->snr);
     SYSTEM_LOGF_LN("SIZE   = %d", tData->payloadSize);
     SYSTEM_LOG("DATA   = ");
     for(int i=0; i<tData->payloadSize; i++){

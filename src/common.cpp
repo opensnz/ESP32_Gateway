@@ -1,6 +1,7 @@
 #include "common.h"
 #include "log.h"
 
+#define GET_TIME_TIMEOUT   5000
 
 /********************* Global Function Implementations **********************/
 
@@ -35,7 +36,7 @@ void timeAdjustmentNotification(struct timeval * t){
 
 void genericPacket(JSONVar & packet){
     packet["rxpk"][0]["time"] = "";
-    packet["rxpk"][0]["tmms"] = 0;
+    //packet["rxpk"][0]["tmms"] = 0;
     packet["rxpk"][0]["tmst"] = 0;
     packet["rxpk"][0]["chan"] = 1;
     packet["rxpk"][0]["rfch"] = 0;
@@ -53,11 +54,17 @@ void genericPacket(JSONVar & packet){
 
 
 time_t getTime(struct tm * timeinfo) {
-  time_t now;
-  if (!getLocalTime(timeinfo)) {
-    //Failed to obtain time
+    uint32_t start = millis();
+    time_t now;
+    while((millis()-start) <= GET_TIME_TIMEOUT)
+    {
+        time(&now);
+        localtime_r(&now, timeinfo);
+        if(timeinfo->tm_year > (2016 - 1900))
+        {
+            return now;
+        }
+        delay(10);
+    }
     return 0;
-  }
-  time(&now);
-  return now;
 }

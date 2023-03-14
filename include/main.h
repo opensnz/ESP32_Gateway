@@ -11,10 +11,3 @@ void TransceiverTaskEntry(void * parameter);
 
 void ForwarderTaskEntry(void * parameter);
 
-
-
-/*************** Function Prototypes *******************/
-
-uint32_t hexStringToArray(const char * hexString, uint8_t *pArray);
-
-uint32_t arrayToHexString(const uint8_t *pArray, uint32_t size, char * hexString);

@@ -6,6 +6,7 @@
 #include <freertos/queue.h>
 #include <SPI.h>
 #include <LoRa.h>
+#include "device.h"
 #include "log.h"
 
 #define halfWord(hi, lo)                    ((hi << 8) | lo)
@@ -15,21 +16,21 @@
 #define bitWrite(value, bit, bitvalue)      ((bitvalue) ? bitSet(value, bit) : \
                                             			  bitClear(value, bit))
 
-#define LORA_FREQUENCY_DEFAULT  868000000U        // LoRa default RF frequency
+#define LORA_FREQUENCY_DEFAULT  868E6        	  // LoRa default RF frequency
 #define LORA_CS_PIN             GPIO_NUM_18       // LoRa radio chip select
 #define LORA_RESET_PIN          GPIO_NUM_14       // LoRa radio reset
 #define LORA_IRQ_PIN            GPIO_NUM_26       // change for your board; must be a hardware interrupt pin
 
-#define TRANSCEIVER_QUEUE_SIZE        10
+#define TRANSCEIVER_QUEUE_SIZE        DEVICE_TOTAL
 #define TRANSCEIVER_DEV_EUI_SIZE      8
 #define TRANSCEIVER_PAYLOAD_MAX_SIZE  256
 
 typedef struct transceiver_data_t{
-    uint8_t DevEUI[TRANSCEIVER_DEV_EUI_SIZE];
-    uint16_t rssi;
-    uint16_t snr;
+    uint8_t DevEUI[DEVICE_DEV_EUI_SIZE];
+    int rssi;
+    float snr;
     uint32_t payloadSize;
-    uint8_t payload[TRANSCEIVER_PAYLOAD_MAX_SIZE];
+    uint8_t payload[DEVICE_PAYLOAD_MAX_SIZE];
 } Transceiver_data_t;
 
  
@@ -39,6 +40,7 @@ private:
 	
 	void setup(void);
 	void loop(void);
+	bool isBase64(const char * data);
     
 
 public:
@@ -49,6 +51,7 @@ public:
 
 /******************* Exported Global Variables ************************/
 
+extern TaskHandle_t  hTransceiver;
 extern QueueHandle_t qTransceiverToGateway;
 extern TransceiverClass Transceiver;
 

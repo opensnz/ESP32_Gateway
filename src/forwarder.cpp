@@ -1,17 +1,47 @@
 #include "forwarder.h"
+#include "common.h"
+#include "system.h"
 
 QueueHandle_t qGatewayToForwarder = NULL;
 QueueHandle_t qForwarderToGateway = NULL;
+TaskHandle_t hForwarder   = NULL;
 
-ForwarderClass Forwarder(FORWARDER_SERVER_DEFAULT, FORWARDER_PORT_DEFAULT);
+ForwarderClass Forwarder(FORWARDER_HOST_DEFAULT, FORWARDER_PORT_DEFAULT);
 
 ForwarderClass::ForwarderClass(IPAddress host, uint16_t port){
     this->host = host;
     this->port = port;
 }
 
-void ForwarderClass::setup(void){
+bool ForwarderClass::loadConfig(void){
+    String content;
+    JSONVar config;
+    if(System.readFile(FORWARDER_GATEWAY_FILE, content))
+    {
+        config = JSON.parse(content);
+        this->host = IPAddress( (uint8_t)config["host"][0],
+                                (uint8_t)config["host"][1],
+                                (uint8_t)config["host"][2],
+                                (uint8_t)config["host"][3]
+        );
+        this->port = (uint16_t)config["port"];
+        this->handler.setGatewayID((const char *)config["id"]);
+        this->handler.gatewayLati = (double)config["lat"];
+        this->handler.gatewayLong = (double)config["lon"];
+        this->handler.gatewayAlti = (uint32_t)config["alt"];
+        this->handler.aliveInterval = (uint32_t)config["alive"];
+        this->handler.statInterval  = (uint32_t)config["stat"];
+        return true;
+    }
+    return false;
+}
 
+void ForwarderClass::setup(void){
+    while(!this->loadConfig())
+    {
+        SYSTEM_LOGF_LN("Loading Config Info failed");
+        delay(100);
+    }
     qGatewayToForwarder = xQueueCreate(FORWARDER_QUEUE_SIZE, sizeof(Forwarder_data_t));
     qForwarderToGateway = xQueueCreate(FORWARDER_QUEUE_SIZE, sizeof(Forwarder_data_t));
     if (qGatewayToForwarder == NULL)
@@ -21,13 +51,6 @@ void ForwarderClass::setup(void){
     if (qForwarderToGateway == NULL)
     {
         SYSTEM_LOGF_LN("Failed to create queue= %p", qForwarderToGateway);
-    }
-
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        SYSTEM_LOG_LN("WiFi Failed");
-        while(1) {
-            delay(1000);
-        }
     }
 
     if(udp.listen(IPAddress(0,0,0,0), this->port)) {
@@ -40,7 +63,7 @@ void ForwarderClass::setup(void){
         SYSTEM_LOG_LN("UDP not connected");
     }
 
-    xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  2000, NULL, 1, &periodicTaskHandler, 1);            
+    xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  10000, NULL, 1, &periodicTaskHandler, 1);            
   
 }
 
@@ -61,7 +84,7 @@ void ForwarderClass::loop(void){
                 uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
                 SYSTEM_PRINT_LN("\n##################################################");
                 SYSTEM_LOG("PUSH DATA : ");
-                this->handler.pushData(fData.packet, fData.packetSize, fData.DevEUI, packet);
+                this->handler.pushData(fData.packet, fData.packetSize, packet);
                 SYSTEM_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
                 SYSTEM_PRINT_LN("##################################################");
                 this->udp.writeTo(packet, PKT_MIN_SIZE + fData.packetSize, this->host, this->port);
@@ -126,11 +149,14 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
             this->udp.writeTo(packet, PKT_MIN_SIZE + PKT_TX_ACK_DATA_SIZE, this->host, this->port);
             Forwarder_data_t fData;
             fData.packetSize = size - 4;
-            for(int i=0; i<fData.packetSize; i++){
+            for(int i=0; i<fData.packetSize; i++)
+            {
                 fData.packet[i] = data[i+4];
             }
-            /* Set DevEUI */
-            xQueueSend(qForwarderToGateway, &fData, portMAX_DELAY);
+            if(qForwarderToGateway != NULL)
+            {
+                xQueueSend(qForwarderToGateway, &fData, portMAX_DELAY);
+            }
             break;
     }
 }
@@ -141,14 +167,37 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
 
 void periodicTaskEntry(void * parameter){
     SYSTEM_PRINT_LN("periodicTaskEntry");
-    uint8_t packet[PKT_MIN_SIZE];
+    time_t timestamp;
+    struct tm timeInfo;
+    uint32_t length;
+    uint8_t packet[PKT_MAX_SIZE];
     while(true)
     {
+        timestamp = getTime(&timeInfo);
+        if(timestamp > 0)
+        {
+            if((timestamp - Forwarder.getHandler()->statTimestamp) >= Forwarder.getHandler()->statInterval)
+            {
+                Forwarder.getHandler()->statTimestamp = (uint32_t)timestamp;
+                length = Forwarder.getHandler()->pushStat(packet);
+                SYSTEM_PRINT_LN(String(packet, length));
+                Forwarder.getUDP()->writeTo(packet, length, *(Forwarder.getHost()), Forwarder.getPort());
+            }
+            if(Forwarder.getHandler()->pktTxNb == UINT32_MAX - 1)
+            {
+                Forwarder.getHandler()->loraRxNb = 0;
+                Forwarder.getHandler()->loraTxNb = 0;
+                Forwarder.getHandler()->pktAckNb = 0;
+                Forwarder.getHandler()->pktRxNb = 0;
+                Forwarder.getHandler()->pktTxNb = 0;
+            }
+        }
+
         SYSTEM_LOG_LN("PKT_PULL_DATA");
         SYSTEM_LOG_LN(*Forwarder.getHost());
         Forwarder.getHandler()->pullData(packet);
         Forwarder.getUDP()->writeTo(packet, PKT_MIN_SIZE, *(Forwarder.getHost()), Forwarder.getPort());
-        delay(PKT_PULL_DATA_FREQUENCY * 1000);
+        delay(Forwarder.getHandler()->aliveInterval * S_TO_MS_FACTOR);
     }
 }
 
@@ -157,30 +206,28 @@ void periodicTaskEntry(void * parameter){
 /********************** Handler Class Implementation ****************************/
 
 
-Handler::Handler(const char * gatewayEUI){
-    this->hexStringToArray(gatewayEUI, this->gatewayEUI);
+Handler::Handler(){
     this->tokenX = 0x0000;
     this->tokenY = 0x0000;
     this->tokenZ = 0x0000;
 }
 
-uint32_t Handler::hexStringToArray(const char * hexString, uint8_t *pArray) {
-    char hex2Bytes[3]  = "FF";
-    for (int i = 0; i < FORWARDER_GATEWAY_EUI_SIZE; i += 1) {
-        hex2Bytes[0] = hexString[2*i];
-        hex2Bytes[1] = hexString[2*i+1];
-        pArray[i] = (uint8_t) strtol(hex2Bytes, NULL, 16);
+void Handler::setGatewayID(String id){
+
+    hexStringToArray(id, this->gatewayEUI);
+
+}
+
+uint32_t Handler::getGatewayID(uint8_t *pGatewayEUI){
+    for(int i=0; i<FORWARDER_GATEWAY_EUI_SIZE; i++)
+    {
+        pGatewayEUI[i] = this->gatewayEUI[i];
     }
     return FORWARDER_GATEWAY_EUI_SIZE;
 }
 
 uint16_t Handler::randomU16() {
     return (uint16_t)random();
-}
-
-
-void Handler::setGatewayEUI(const char * gatewayEUI) {
-    hexStringToArray(gatewayEUI, this->gatewayEUI);
 }
 
 bool Handler::validateTokenX(const uint8_t *data) {
@@ -198,8 +245,10 @@ uint16_t Handler::saveTokenZ(const uint8_t *data) {
     return this->tokenZ;
 }
 
-uint32_t  Handler::pushData(const uint8_t *data, uint32_t size,  const uint8_t * DevEUI, uint8_t *packet){
+uint32_t  Handler::pushData(const uint8_t *data, uint32_t size, uint8_t *packet){
     this->tokenX = this->randomU16();
+    this->loraRxNb++;
+    this->pktTxNb++;
     packet[0] = PROTOCOL_VERSION;
     packet[1] = highByte(this->tokenX);
     packet[2] = lowByte(this->tokenX);
@@ -216,11 +265,14 @@ uint32_t  Handler::pushData(const uint8_t *data, uint32_t size,  const uint8_t *
 }
 
 bool Handler::pushAck(const uint8_t *data){
+    this->pktAckNb++;
+    this->pktRxNb++;
     return this->validateTokenX(data);
 }
 
 uint32_t Handler::pullData(uint8_t *packet){
     this->tokenY = this->randomU16();
+    this->pktTxNb++;
     packet[0] = PROTOCOL_VERSION;
     packet[1] = highByte(this->tokenY);
     packet[2] = lowByte(this->tokenY);
@@ -233,15 +285,19 @@ uint32_t Handler::pullData(uint8_t *packet){
 }
 
 bool Handler::pullAck(const uint8_t *data){
+    this->pktAckNb++;
+    this->pktRxNb++;
     return this->validateTokenY(data);
 }
 
 uint16_t Handler::pullResp(const uint8_t *data){
+    this->pktRxNb++;
     return this->saveTokenZ(data);
 }
 
 uint32_t Handler::txAck(uint16_t tokenZ, uint8_t *packet){
     char data[] =  "{\"txpk_ack\":{\"error\":NONE}}";
+    this->pktTxNb++;
     packet[0] = PROTOCOL_VERSION;
     packet[1] = highByte(tokenZ);
     packet[2] = lowByte(tokenZ);
@@ -257,12 +313,33 @@ uint32_t Handler::txAck(uint16_t tokenZ, uint8_t *packet){
     return (PKT_MIN_SIZE + PKT_TX_ACK_DATA_SIZE);
 }
 
-uint32_t Handler::getDevEUI(uint8_t *pDevEUI){
-    for(int i=0; i<DEVICE_DEV_EUI_SIZE; i++)
+uint32_t Handler::pushStat(uint8_t *packet)
+{
+    JSONVar data;  
+    float ackr = 0.00;
+    if(this->pktTxNb > 0)
     {
-        pDevEUI[i] = this->gatewayEUI[i];
+        ackr = (100.0 * this->pktAckNb)/this->pktTxNb;
     }
-    return DEVICE_DEV_EUI_SIZE;
+    time_t timestamp;
+    struct tm timeInfo;
+    char datetime[32];
+    getTime(&timeInfo);
+    strftime(datetime, 32, "%Y-%m-%d %H:%M:%S", &timeInfo);
+    data["stat"]["time"] = String(datetime) + " GMT";
+    data["stat"]["lati"] = this->gatewayLati;
+    data["stat"]["long"] = this->gatewayLong;
+    data["stat"]["alti"] = this->gatewayAlti;
+    data["stat"]["rxnb"] = this->loraRxNb;
+    data["stat"]["rxok"] = this->loraRxNb;
+    data["stat"]["rxfw"] = this->loraTxNb;
+    data["stat"]["ackr"] = ackr;
+    data["stat"]["dwnb"] = this->pktRxNb;
+    data["stat"]["txnb"] = this->pktTxNb;
+    String jsonData = JSON.stringify(data);
+    timestamp = this->pushData((uint8_t *)jsonData.c_str(), jsonData.length(), packet);
+    this->loraRxNb--;
+    return timestamp;
 }
 
 
@@ -271,11 +348,6 @@ uint32_t Handler::getDevEUI(uint8_t *pDevEUI){
 void printForwarderData(Forwarder_data_t *fData)
 {
     SYSTEM_PRINT_LN("\n################ Forwarder Data ################");
-    SYSTEM_LOG("DevEUI = ");
-    for(int i=0; i<4; i++){
-        SYSTEM_PRINTF("%02X", fData->DevEUI[i]);
-    }
-    SYSTEM_PRINT("\n");
     SYSTEM_LOG("Packet = ");
     for(int i=0; i<fData->packetSize; i++){
         SYSTEM_PRINTF("%02X", fData->packet[i]);

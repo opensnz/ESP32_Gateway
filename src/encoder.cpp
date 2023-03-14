@@ -1,132 +1,81 @@
 #include "encoder.h"
+#include "lorawan.h"
+#include "common.h"
+#include "system.h"
+#include "log.h"
 
 
 EncoderClass Encoder;
+char EncoderB64Buffer[ENCODER_BASE64_BUFFER_MAX_SIZE];
 
-uint32_t EncoderClass::arrayToHexString(const uint8_t *pArray, uint32_t size, char * hexString){
-    for (int i = 0; i < size; i += 1)
-    {
-        sprintf(&hexString[2*i], "%.2x", pArray[i]);
-    }
-    hexString[2*size+1] = '\0';
-    return 2*size+1;
-}
 
-uint32_t EncoderClass::hexStringToArray(const char * hexString, uint8_t *pArray){
-    char hex2Bytes[3]  = "FF";
-    uint32_t size = String(hexString).length()/2;
-    for (int i = 0; i < size; i += 1) 
-    {
-        hex2Bytes[0] = hexString[2*i];
-        hex2Bytes[1] = hexString[2*i+1];
-        pArray[i] = (uint8_t)strtol(hex2Bytes, NULL, 16);
-    }
-    return size;
-}
-
-t_http_codes EncoderClass::httpPOSTRequest(String serverName, String body, String & response)
-{
-    WiFiClient client;
-    HTTPClient http;
-
-    SYSTEM_PRINT_LN("\n################ Encoder Data ################");
-    SYSTEM_PRINT_LN(String("HTTP to server " + serverName).c_str());
-    http.begin(client, serverName);
-    http.addHeader("Content-Type", "application/json");
-
-    t_http_codes httpResponseCode = (t_http_codes)http.POST(body);
-    response = http.getString();
-    SYSTEM_LOG("HTTP POST Response code: ");
-    SYSTEM_PRINT_LN(httpResponseCode);
-    SYSTEM_LOG("HTTP POST Response: ");
-    SYSTEM_PRINT_LN(response);
-    SYSTEM_PRINT_LN("##################################################");
-    // Free resources
-    http.end();
-    return httpResponseCode;
-}
 
 EncoderClass::EncoderClass(){
 
 }
 
+LoRaWAN_Packet_Type_t EncoderClass::packetType(String PHYPayload)
+{
+
+    uint32_t size = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
+                                            (uint8_t*)EncoderB64Buffer, ENCODER_BASE64_BUFFER_MAX_SIZE);
+    MHDR_MType_t type = LoRaWAN_MessageType((uint8_t*)EncoderB64Buffer, size);
+    return (LoRaWAN_Packet_Type_t)(type);
+}
+
 bool EncoderClass::joinRequest(Device_data_t & device, JSONVar & packet){
-    JSONVar body;
-    String response;
-    char hexData[64];
-    this->arrayToHexString(device.DevEUI, DEVICE_DEV_EUI_SIZE, hexData);
-    body["DevEUI"] = hexData;
-    this->arrayToHexString(device.AppEUI, DEVICE_APP_EUI_SIZE, hexData);
-    body["AppEUI"] = hexData;
-    this->arrayToHexString(device.AppKey, DEVICE_APP_KEY_SIZE, hexData);
-    body["AppKey"] = hexData;
-    sprintf(hexData, "%.4x", device.DevNonce);
-    body["DevNonce"] = hexData;
-    t_http_codes httpResponseCode;
-    httpResponseCode = this->httpPOSTRequest(String(ENCODER_SERVER)+ENCODER_JOIN_REQUEST, 
-                                                JSON.stringify(body), response);
-    if(httpResponseCode == HTTP_CODE_OK)
+
+    memcpy(LoRaWAN.JoinRequest.DevEUI, device.info.DevEUI, DEVICE_DEV_EUI_SIZE);
+    memcpy(LoRaWAN.JoinRequest.AppEUI, device.info.AppEUI, DEVICE_APP_EUI_SIZE);
+    memcpy(LoRaWAN.JoinRequest.AppKey, device.info.AppKey, DEVICE_APP_KEY_SIZE);
+    LoRaWAN.JoinRequest.DevNonce = device.info.DevNonce;
+
+    device.payloadSize = LoRaWAN_JoinRequest(&LoRaWAN.JoinRequest, device.payload, DEVICE_PAYLOAD_MAX_SIZE);
+    uint32_t size = LoRaWAN_Binary_To_Base64(device.payload, device.payloadSize,
+                                                EncoderB64Buffer, ENCODER_BASE64_BUFFER_MAX_SIZE);
+    if(device.payloadSize != 0)
     {
-        JSONVar responseJSON = JSON.parse(response);
-        String data = responseJSON["PHYPayload"];
-        packet["rxpk"][0]["size"] = (uint32_t)responseJSON["size"];
-        packet["rxpk"][0]["data"] = data;
-        SYSTEM_LOG("Encoder JoinRequest Response : ");SYSTEM_PRINT_LN(responseJSON);
+        packet["rxpk"][0]["size"] = size;
+        packet["rxpk"][0]["data"] = String(EncoderB64Buffer, size);
         return true;
     }
     return false;
 }
 
 bool EncoderClass::joinAccept(Device_data_t & device, String PHYPayload){
-    JSONVar body;
-    String response;
-    char hexData[64];
-    this->arrayToHexString(device.AppKey, DEVICE_APP_KEY_SIZE, hexData);
-    body["AppKey"] = hexData;
-    sprintf(hexData, "%.4x", device.DevNonce);
-    body["DevNonce"] = hexData;
-    body["PHYPayload"] = PHYPayload;
-    t_http_codes httpResponseCode;
-    httpResponseCode = this->httpPOSTRequest(String(ENCODER_SERVER)+ENCODER_JOIN_ACCEPT, 
-                                                JSON.stringify(body), response);
-    if(httpResponseCode == HTTP_CODE_OK)
+    LoRaWAN.JoinAccept.DevNonce = device.info.DevNonce;
+    memcpy(LoRaWAN.JoinAccept.AppKey, device.info.AppKey, DEVICE_APP_KEY_SIZE);
+    device.payloadSize = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
+                                                    device.payload, DEVICE_PAYLOAD_MAX_SIZE);
+    bool status = LoRaWAN_JoinAccept(&LoRaWAN.JoinAccept, device.payload, device.payloadSize);
+    if(status)
     {
-        JSONVar responseJSON = JSON.parse(response);
-        this->hexStringToArray((const char*)responseJSON["DevAddr"], device.DevAddr);
-        this->hexStringToArray((const char*)responseJSON["NwkSKey"], device.NwkSKey);
-        this->hexStringToArray((const char*)responseJSON["AppSKey"], device.AppSKey);
-        SYSTEM_LOG("Encoder JoinAccept Response : ");SYSTEM_PRINT_LN(responseJSON);
-        return true;
+        device.info.DevAddr = LoRaWAN.JoinAccept.DevAddr;
+        memcpy(device.info.NwkSKey, LoRaWAN.JoinAccept.NwkSKey, DEVICE_NWK_SKEY_SIZE);
+        memcpy(device.info.AppSKey, LoRaWAN.JoinAccept.AppSKey, DEVICE_APP_SKEY_SIZE);
     }
-    return false;
+    return status;
 }
 
 bool EncoderClass::unconfirmedDataUp(Device_data_t & device, JSONVar & packet){
-    JSONVar body;
-    String response;
-    char hexData[2*DEVICE_PAYLOAD_MAX_SIZE];
-    this->arrayToHexString(device.DevAddr, DEVICE_DEV_ADDR_SIZE, hexData);
-    body["DevAddr"] = hexData;
-    sprintf(hexData, "%.4x", device.FCnt);
-    body["FCnt"] = hexData;
-    sprintf(hexData, "%.2x", device.FPort);
-    body["FPort"] = hexData;
-    this->arrayToHexString(device.payload, device.payloadSize, hexData);
-    body["payload"] = hexData;
-    this->arrayToHexString(device.NwkSKey, DEVICE_NWK_SKEY_SIZE, hexData);
-    body["NwkSKey"] = hexData;
-    this->arrayToHexString(device.AppSKey, DEVICE_APP_SKEY_SIZE, hexData);
-    body["AppSKey"] = hexData;
-    t_http_codes httpResponseCode;
-    httpResponseCode = this->httpPOSTRequest(String(ENCODER_SERVER)+ENCODER_JOIN_ACCEPT, 
-                                                JSON.stringify(body), response);
-    if(httpResponseCode == HTTP_CODE_OK)
+
+    LoRaWAN.MACPayload.FPort = device.info.FPort;
+    LoRaWAN.MACPayload.FHDR.FCnt16 = device.info.FCnt;
+    LoRaWAN.MACPayload.FHDR.DevAddr = device.info.DevAddr;
+    LoRaWAN.MACPayload.FHDR.FCtrl.uplink.ACK = true;
+    LoRaWAN.MACPayload.FHDR.FCtrl.uplink.ADR = true;
+    memcpy(LoRaWAN.MACPayload.NwkSKey, device.info.NwkSKey, DEVICE_NWK_SKEY_SIZE);
+    memcpy(LoRaWAN.MACPayload.AppSKey, device.info.AppSKey, DEVICE_APP_SKEY_SIZE);
+    memcpy(LoRaWAN.MACPayload.payload, device.payload, device.payloadSize);
+    LoRaWAN.MACPayload.payloadSize = device.payloadSize;
+
+    device.payloadSize = LoRaWAN_UnconfirmedDataUp(&LoRaWAN.MACPayload, device.payload, DEVICE_PAYLOAD_MAX_SIZE);
+    uint32_t size = LoRaWAN_Binary_To_Base64(device.payload, device.payloadSize,
+                                                EncoderB64Buffer, ENCODER_BASE64_BUFFER_MAX_SIZE);
+    if(device.payloadSize != 0)
     {
-        JSONVar responseJSON = JSON.parse(response);
-        String data = responseJSON["PHYPayload"];
-        packet["rxpk"][0]["size"] = (uint32_t)responseJSON["size"];
-        packet["rxpk"][0]["data"] = data;
-        SYSTEM_LOG("Encoder UnconfirmedDataUp Response : ");SYSTEM_PRINT_LN(responseJSON);
+        packet["rxpk"][0]["size"] = size;
+        packet["rxpk"][0]["data"] = String(EncoderB64Buffer, size);
         return true;
     }
     return false;
