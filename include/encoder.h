@@ -1,19 +1,38 @@
+/**
+  ******************************************************************************
+  * @file    encoder.h
+  * @author  OpenSnz IoT Team
+  * @version 1.0
+  ******************************************************************************
+  * @attention
+  * 
+    Copyright (C) 2023 OpenSnz Technology - All Rights Reserved.
+
+    THE CONTENTS OF THIS PROJECT ARE PROPRIETARY AND CONFIDENTIAL.
+    UNAUTHORIZED COPYING, TRANSFERRING OR REPRODUCTION OF THE CONTENTS OF THIS PROJECT, VIA ANY MEDIUM IS STRICTLY PROHIBITED.
+
+    The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
+    for any purpose other than the purpose for which they were provided to you.
+
+    The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to
+    the warranties of merchantability, fitness for a particular purpose and non infringement.
+    In no event shall the authors or copyright holders be liable for any claim, damages or other liability,
+    whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software
+    or the use or other dealings in the software.
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+  *
+  ******************************************************************************
+  */ 
+
 #ifndef __ENCODER_H__
 #define __ENCODER_H__
 
 #include <Arduino.h>
 #include <Arduino_JSON.h>
-#include <HTTPClient.h>
 #include "device.h"
 
 
-#define ENCODER_SERVER                  "http://192.168.10.99:5050/"
-#define ENCODER_JOIN_REQUEST            "JoinRequest"
-#define ENCODER_JOIN_ACCEPT             "JoinAccept"
-#define ENCODER_UNCONFIRMED_DATA_UP     "UnconfirmedDataUp"
-#define ENCODER_UNCONFIRMED_DATA_DOWN   "UnconfirmedDataDown"
-#define ENCODER_CONFIRMED_DATA_UP       "ConfirmedDataUp"
-#define ENCODER_CONFIRMED_DATA_DOWN     "ConfirmedDataDown"
 #define ENCODER_BASE64_BUFFER_MAX_SIZE  (300)
 
 
@@ -51,3 +70,5 @@ extern char EncoderB64Buffer[ENCODER_BASE64_BUFFER_MAX_SIZE];
 
 
 #endif /* __ENCODER_H__ */
+
+/*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/

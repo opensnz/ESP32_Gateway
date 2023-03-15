@@ -1,3 +1,30 @@
+/**
+  ******************************************************************************
+  * @file    gateway.cpp
+  * @author  OpenSnz IoT Team
+  * @version 1.0
+  ******************************************************************************
+  * @attention
+  * 
+    Copyright (C) 2023 OpenSnz Technology - All Rights Reserved.
+
+    THE CONTENTS OF THIS PROJECT ARE PROPRIETARY AND CONFIDENTIAL.
+    UNAUTHORIZED COPYING, TRANSFERRING OR REPRODUCTION OF THE CONTENTS OF THIS PROJECT, VIA ANY MEDIUM IS STRICTLY PROHIBITED.
+
+    The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
+    for any purpose other than the purpose for which they were provided to you.
+
+    The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to
+    the warranties of merchantability, fitness for a particular purpose and non infringement.
+    In no event shall the authors or copyright holders be liable for any claim, damages or other liability,
+    whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software
+    or the use or other dealings in the software.
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+  *
+  ******************************************************************************
+  */ 
+
 #include "gateway.h"
 #include "common.h"
 #include "system.h"
@@ -12,25 +39,27 @@ QueueHandle_t qJGateway = NULL;
 QueueHandle_t qDGateway = NULL;
 
 void GatewayClass::tSetup(void){
+    RTC.offset = GATEWAY_GMT_OFFSET_SEC;
+    RTC.setTime(TIMESTAMP_DEFAULT);
     sntp_set_time_sync_notification_cb(timeAdjustmentNotification);
     sntp_servermode_dhcp(1);
     configTime(GATEWAY_GMT_OFFSET_SEC, GATEWAY_DAY_OFFSET_SEC, GATEWAY_NTP_SERVER_1, GATEWAY_NTP_SERVER_2);
-    xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", 10000, NULL, 1, &joinTaskHandler, 0);
     this->semaphore = xSemaphoreCreateBinary();
     if(this->semaphore == NULL)
     {
         SYSTEM_LOGF_LN("Failed to create semaphore= %p", this->semaphore);
+    }else
+    {
+        // 
+        xSemaphoreGive(this->semaphore);
     }
+    xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", 10000, NULL, TASK_PRIORITY, &joinTaskHandler, 1);
 }
 
 void GatewayClass::tLoop(void){
     Transceiver_data_t tData;
     Device_data_t device;
     BaseType_t status = pdFALSE;
-    struct tm receivedTimeInfo;
-    time_t timestamp; // overflow at 19 January 2038, at 03:14:07 UTC (end of time)
-    JSONVar packet;
-    char datetime[32];
     while(true){
         if(qTransceiverToGateway == NULL)
         {
@@ -38,49 +67,28 @@ void GatewayClass::tLoop(void){
             delay(100);
         }else
         {
-            receiveLabel : 
-            SYSTEM_PRINT_LN("Welcome to receiveLabel");
             status = xQueueReceive(qTransceiverToGateway, &tData, portMAX_DELAY);
             if(status == pdTRUE)
             {
-                timestamp = getTime(&receivedTimeInfo);
                 SYSTEM_PRINT_LN("Device's data received successfully");
                 memcpy(device.info.DevEUI, tData.DevEUI, DEVICE_DEV_EUI_SIZE);
                 memcpy(device.payload, tData.payload, tData.payloadSize);
                 device.payloadSize = tData.payloadSize;
                 if(!Device.isDeviceConfigured(device.info))
                 {
-                    // device not configured (go to receiveLabel)
-                    SYSTEM_PRINT_LN("Device not configured (go to receiveLabel)");
-                    goto receiveLabel;
+                    // device not configured
+                    SYSTEM_PRINT_LN("Device not configured");
+                    continue;
                 }
                 Device.loadDevice(device.info);
                 if(device.info.FCnt == DEVICE_FCNT_DEFAULT || device.info.FCnt > DEVICE_FCNT_MAX)
                 {
                     // JoinRequest needed
+                    this->joining(device);
                 }else
                 {
                     // UnconfirmedDataUp needed
-                    genericPacket(packet);
-                    if(timestamp > 0)
-                    {
-                        strftime(datetime, 32, "%Y-%m-%dT%H:%M:%SZ", &receivedTimeInfo);
-                        packet["rxpk"][0]["time"] = datetime;
-                        //packet["rxpk"][0]["tmms"] = (double)(timestamp - GATEWAY_GPS_START_TIMESTAMP) * 1000;
-                        packet["rxpk"][0]["tmst"] = (uint32_t)timestamp;
-                    }
-                    if(Encoder.unconfirmedDataUp(device, packet))
-                    {
-                        device.info.FCnt += 1;
-                        Device.saveFCnt(device.info);
-                        xSemaphoreTake(this->semaphore, portMAX_DELAY);
-                        xSemaphoreGive(this->semaphore);
-                        SYSTEM_LOG_LN("UnconfirmedDataUp done");
-                        this->forward(packet);
-                    }else
-                    {
-                        SYSTEM_LOG_LN("UnconfirmedDataUp failed");
-                    }
+                    this->dataUp(device);
                 }
                 
             }else
@@ -171,6 +179,68 @@ bool GatewayClass::forward(JSONVar & packet){
     return false;
 }
 
+
+bool GatewayClass::joining(Device_data_t & device)
+{
+    JSONVar packet;
+    genericPacket(packet);
+    packet["rxpk"][0]["time"] = RTC.getTime("%Y-%m-%dT%H:%M:%SZ");
+    //packet["rxpk"][0]["tmms"] = (double)(timestamp - GATEWAY_GPS_START_TIMESTAMP) * 1000;
+    packet["rxpk"][0]["tmst"] = (uint32_t)RTC.getEpoch();
+
+    SYSTEM_LOG_LN("JoinRequest begins");
+    if(Encoder.joinRequest(device, packet))
+    {
+        device.info.DevNonce += 1;
+        Device.saveDevNonce(device.info);
+        SYSTEM_LOG_LN("JoinRequest done");
+        // Notify JGateway for joinAccept
+        if(qJGateway != NULL)
+        {
+            SYSTEM_PRINT_LN("Notifying JGateway");
+            xQueueSend(qJGateway, device.info.DevEUI, portMAX_DELAY);
+            // Send JoinRequest
+            Gateway.forward(packet);
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool GatewayClass::dataUp(Device_data_t & device, bool confirmed)
+{
+    JSONVar packet;
+    bool status = false;
+    genericPacket(packet);
+    packet["rxpk"][0]["time"] = RTC.getTime("%Y-%m-%dT%H:%M:%SZ");
+    //packet["rxpk"][0]["tmms"] = (double)(timestamp - GATEWAY_GPS_START_TIMESTAMP) * 1000;
+    packet["rxpk"][0]["tmst"] = (uint32_t)RTC.getEpoch();
+
+    if(!confirmed)
+    {
+        status = Encoder.unconfirmedDataUp(device, packet);
+    }else
+    {
+        status = Encoder.unconfirmedDataUp(device, packet);
+    }
+
+    if(status)
+    {
+        device.info.FCnt += 1;
+        Device.saveFCnt(device.info);
+        xSemaphoreTake(this->semaphore, portMAX_DELAY);
+        xSemaphoreGive(this->semaphore);
+        SYSTEM_LOG_LN("DataUp done");
+        this->forward(packet);
+        return true;
+    }else
+    {
+        SYSTEM_LOG_LN("DataUp failed");
+    }
+    return false;
+}
+
 void GatewayClass::tMain(void){
     SYSTEM_PRINT_LN("Gateway tMain setting...");
     this->tSetup();
@@ -189,15 +259,18 @@ void GatewayClass::fMain(void){
 void joinTaskEntry(void * parameter)
 {
     Device_data_t device;
-    time_t timestamp;
-    struct tm timeInfo;
-    char datetime[32];
     String path = DEVICE_FILE_CONFIG;
-    JSONVar config, packet;
+    JSONVar config;
     String content;
     SYSTEM_PRINT_LN("joinTaskEntry");
     while(true)
     {
+        if(Gateway.semaphore == NULL)
+        {
+            delay(10);
+            SYSTEM_PRINT_LN("Waiting for Gateway Semaphore");
+            continue;
+        }
         xSemaphoreTake(Gateway.semaphore, portMAX_DELAY);
         if(System.readFile(path, content))
         {
@@ -210,36 +283,14 @@ void joinTaskEntry(void * parameter)
                 {
                     continue;
                 }
-                timestamp = getTime(&timeInfo);
-                genericPacket(packet);
-                if(timestamp > 0)
-                {
-                    strftime(datetime, 32, "%Y-%m-%dT%H:%M:%SZ", &timeInfo);
-                    packet["rxpk"][0]["time"] = datetime;
-                    //packet["rxpk"][0]["tmms"] = (double)(timestamp - GATEWAY_GPS_START_TIMESTAMP) * 1000;
-                    packet["rxpk"][0]["tmst"] = (uint32_t)timestamp;
-                }
-
-                if(Encoder.joinRequest(device, packet))
-                {
-                    device.info.DevNonce += 1;
-                    Device.saveDevNonce(device.info);
-                    SYSTEM_LOG_LN("JoinRequest done");
-                    // Notify JGateway for joinAccept
-                    if(qJGateway != NULL)
-                    {
-                        SYSTEM_PRINT_LN("Notifying JGateway");
-                        xQueueSend(qJGateway, device.info.DevEUI, portMAX_DELAY);
-                        // Send JoinRequest
-                        Gateway.forward(packet);
-                    }
-                }
-
+                SYSTEM_PRINTF_LN("Join number %d", i);
+                Gateway.joining(device);
             }
-
         }
         xSemaphoreGive(Gateway.semaphore);
         delay(GATEWAY_JOIN_REQUEST_FREQUENCY * S_TO_MS_FACTOR);
-
     }
 }
+
+
+/*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/

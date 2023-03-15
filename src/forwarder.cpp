@@ -1,3 +1,30 @@
+/**
+  ******************************************************************************
+  * @file    forwarder.cpp
+  * @author  OpenSnz IoT Team
+  * @version 1.0
+  ******************************************************************************
+  * @attention
+  * 
+    Copyright (C) 2023 OpenSnz Technology - All Rights Reserved.
+
+    THE CONTENTS OF THIS PROJECT ARE PROPRIETARY AND CONFIDENTIAL.
+    UNAUTHORIZED COPYING, TRANSFERRING OR REPRODUCTION OF THE CONTENTS OF THIS PROJECT, VIA ANY MEDIUM IS STRICTLY PROHIBITED.
+
+    The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
+    for any purpose other than the purpose for which they were provided to you.
+
+    The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to
+    the warranties of merchantability, fitness for a particular purpose and non infringement.
+    In no event shall the authors or copyright holders be liable for any claim, damages or other liability,
+    whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software
+    or the use or other dealings in the software.
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+  *
+  ******************************************************************************
+  */ 
+
 #include "forwarder.h"
 #include "common.h"
 #include "system.h"
@@ -168,29 +195,29 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
 void periodicTaskEntry(void * parameter){
     SYSTEM_PRINT_LN("periodicTaskEntry");
     time_t timestamp;
-    struct tm timeInfo;
+    String timeGMT;
     uint32_t length;
     uint8_t packet[PKT_MAX_SIZE];
     while(true)
     {
-        timestamp = getTime(&timeInfo);
-        if(timestamp > 0)
+        timestamp = RTC.getEpoch();
+        timeGMT = RTC.getTime("%Y-%m-%dT%H:%M:%SZ");
+
+        if((timestamp - Forwarder.getHandler()->statTimestamp) >= Forwarder.getHandler()->statInterval)
         {
-            if((timestamp - Forwarder.getHandler()->statTimestamp) >= Forwarder.getHandler()->statInterval)
-            {
-                Forwarder.getHandler()->statTimestamp = (uint32_t)timestamp;
-                length = Forwarder.getHandler()->pushStat(packet);
-                SYSTEM_PRINT_LN(String(packet, length));
-                Forwarder.getUDP()->writeTo(packet, length, *(Forwarder.getHost()), Forwarder.getPort());
-            }
-            if(Forwarder.getHandler()->pktTxNb == UINT32_MAX - 1)
-            {
-                Forwarder.getHandler()->loraRxNb = 0;
-                Forwarder.getHandler()->loraTxNb = 0;
-                Forwarder.getHandler()->pktAckNb = 0;
-                Forwarder.getHandler()->pktRxNb = 0;
-                Forwarder.getHandler()->pktTxNb = 0;
-            }
+            Forwarder.getHandler()->statTimestamp = (uint32_t)timestamp;
+            length = Forwarder.getHandler()->pushStat(packet);
+            SYSTEM_PRINT_LN(String(packet, length));
+            Forwarder.getUDP()->writeTo(packet, length, *(Forwarder.getHost()), Forwarder.getPort());
+        }
+        
+        if(Forwarder.getHandler()->pktTxNb == UINT32_MAX - 1)
+        {
+            Forwarder.getHandler()->loraRxNb = 0;
+            Forwarder.getHandler()->loraTxNb = 0;
+            Forwarder.getHandler()->pktAckNb = 0;
+            Forwarder.getHandler()->pktRxNb = 0;
+            Forwarder.getHandler()->pktTxNb = 0;
         }
 
         SYSTEM_LOG_LN("PKT_PULL_DATA");
@@ -315,18 +342,14 @@ uint32_t Handler::txAck(uint16_t tokenZ, uint8_t *packet){
 
 uint32_t Handler::pushStat(uint8_t *packet)
 {
-    JSONVar data;  
+    JSONVar data;
+    uint32_t packetSize;
     float ackr = 0.00;
     if(this->pktTxNb > 0)
     {
         ackr = (100.0 * this->pktAckNb)/this->pktTxNb;
     }
-    time_t timestamp;
-    struct tm timeInfo;
-    char datetime[32];
-    getTime(&timeInfo);
-    strftime(datetime, 32, "%Y-%m-%d %H:%M:%S", &timeInfo);
-    data["stat"]["time"] = String(datetime) + " GMT";
+    data["stat"]["time"] = RTC.getTime("%Y-%m-%d %H:%M:%S GMT");
     data["stat"]["lati"] = this->gatewayLati;
     data["stat"]["long"] = this->gatewayLong;
     data["stat"]["alti"] = this->gatewayAlti;
@@ -337,9 +360,9 @@ uint32_t Handler::pushStat(uint8_t *packet)
     data["stat"]["dwnb"] = this->pktRxNb;
     data["stat"]["txnb"] = this->pktTxNb;
     String jsonData = JSON.stringify(data);
-    timestamp = this->pushData((uint8_t *)jsonData.c_str(), jsonData.length(), packet);
+    packetSize = this->pushData((uint8_t *)jsonData.c_str(), jsonData.length(), packet);
     this->loraRxNb--;
-    return timestamp;
+    return packetSize;
 }
 
 
@@ -354,3 +377,6 @@ void printForwarderData(Forwarder_data_t *fData)
     }
     SYSTEM_PRINT_LN("\n##################################################");
 }
+
+
+/*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/
