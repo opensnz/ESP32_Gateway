@@ -1,33 +1,132 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>OpenSnz Gateway</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="data:,">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <script type="text/javascript" src="script.js"></script>
-  </head>
-  <body>
-    <!-- Header Content -->
-    <header>
-      <button id="home" class="menu selected" onclick="menuOnClick(this)" style="height: 50px;">
-        <img src="logo.png" alt="logo" style="height: 95%;"/>
-        &nbsp Home
-      </button>
-      <button id="device" class="menu" onclick="menuOnClick(this)" style="height: 50px;">Device</button>
-      <button id="network" class="menu" onclick="menuOnClick(this)" style="height: 50px;">Network</button>
-    </header>
-    <!-- Main Content -->
-    <main>
-        <p>Welcome to my web page!</p>
-    </main>
+<html lang="en">
 
-    <!-- Footer -->
-    <footer>
-        <p>
-            <a href="https://www.opensnz-technology.com">Visit Opensnz Technology Website</a>
-        </p>
-    </footer>
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 Gateway</title>
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <script src="bootstrap.bundle.min.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
 
-  </body>
+<body>
+  <header>
+    <nav class="navbar navbar-expand-sm bg-light fixed-top" style="padding: 0px 0px;">
+      <div class="container-fluid justify-content-center">
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item d-flex justify-content-center align-items-center">
+              <a class="navbar-brand" href="#">
+                <img src="logo2.png" alt="Avatar Logo" style=" width:110px; background-color: white;"
+                  class="rounded-pill">
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#home">
+                <button class="btn" onclick="menuOnClick('#home')">Home</button>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#device">
+                <button class="btn" onclick="menuOnClick('#device')">Device</button>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#network">
+                <button class="btn" onclick="menuOnClick('#network')">Network</button>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section id="home">
+      <div class="container-fluid mt-2">
+        <h3>System</h3>
+        <div class="row">
+          <div class="col-lg-4">
+            <div class="card mb-3">
+              <div class="card-header">
+                Flash
+              </div>
+              <div class="card-body">
+                <div class="container-sm">
+                  <div class="d-flex flex-column justify-content-center align-items-center">
+                    <div class="mt-5">
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Frequency : </span>
+                        <input type="text" class="form-control" id="flash-freq" value="" readonly>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Size : </span>
+                        <input type="text" class="form-control" id="flash-size" value="" readonly>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card mb-3">
+              <div class="card-header">
+                Heap
+              </div>
+              <div class="card-body">
+                <div class="container-sm">
+                  <div class="d-flex flex-column justify-content-center align-items-center">
+                    <div class="mt-5">
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Size : </span>
+                        <input type="text" class="form-control" id="heap-size" value="" readonly>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Free : </span>
+                        <input type="text" class="form-control" id="heap-free" value="" readonly>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card mb-3">
+              <div class="card-header">
+                Disk
+              </div>
+              <div class="card-body">
+                <div class="container-sm">
+                  <div class="d-flex flex-column justify-content-center align-items-center">
+                    <div class="mt-5">
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Size : </span>
+                        <input type="text" class="form-control" id="disk-size" value="" readonly>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text">Used : </span>
+                        <input type="text" class="form-control" id="disk-used" value="" readonly>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <script>
+    window.addEventListener('load', getSystemInfo);
+  </script>
+</body>
+
 </html>

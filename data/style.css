@@ -1,34 +1,8 @@
-header{
-    background: #034078;
-    align-items: center;
-    margin: auto 0;
-    border-radius: 3px;
-}
-header button {
-    position: relative;
-    cursor: pointer;
-    background: #83acd3;
-    border: none;
-    padding: 20px;
-    margin: 20px;
-    border-radius: 3px;
-    color: white;
-    font-weight: bolder;
-    font-size: large;
-    font-family: 'Times New Roman', Times, serif;
-    text-align: center;
-}
-
-button:hover {
-    background: #b2d6f8;
-}
-
-button:focus {
-    outline: none;
-    box-shadow: none;
-}
-
-.selected {
-    background: rgb(12, 176, 252);
-}
-
+body {
+    padding-top: 70px;
+  }
+  
+section {
+    padding-top: 70px;
+    margin-top: -70px;
+  }
