@@ -3,6 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP32 Gateway</title>
   <link href="bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
@@ -68,7 +70,6 @@
               </div>
             </div>
           </div>
-
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
@@ -92,7 +93,6 @@
               </div>
             </div>
           </div>
-
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
@@ -190,7 +190,6 @@
       </div>
     </section>
 
-
     <section id="device">
       <div class="container-fluid mt-3">
         <h3>Devices</h3>
@@ -250,10 +249,6 @@
             </div>
           </div>
         </div>
-
-
-
-
         <div class="col-lg-12">
           <div class="card mb-3">
             <div class="card-header"><b>All Device</b></div>
@@ -268,6 +263,7 @@
                   <table id="device-table" class="table table-hover">
                     <thead>
                       <tr>
+                        <th></th>
                         <th>DevEUI</th>
                         <th>AppEUI</th>
                         <th>AppKey</th>
@@ -289,12 +285,7 @@
         </div>
       </div>
     </section>
-
-
-
   </main>
-
-
   <script>
     window.addEventListener('load', getSystemInfo);
   </script>

@@ -133,6 +133,13 @@ function addDevice() {
   const appKey = document.getElementById("AppKey").value;
   const devEUI = document.getElementById("DevEUI").value;
 
+  // create the device object
+  const device = {
+    DevEUI: devEUI,
+    AppEUI: appEUI,
+    AppKey: appKey
+  };
+
   // Check if the DevEUI and AppEUI are in the correct format
   const regex = /^[0-9a-f]{16}$/;
   if (!regex.test(appEUI)) {
@@ -152,8 +159,27 @@ function addDevice() {
       return;
   }
 
-}
+  // send the HTTP POST request to the server
+  fetch("/device/add", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(device)
+  })
+  .then(response => {
+    if(response.ok) {
+      alert("Device added successfully.");
+    } else {
+      alert("Error adding device.");
+    }
+  })
+  .catch(error => {
+    console.error(error);
+    alert("Error adding device.");
+  });
 
+}
 
 $(document).ready(function() {
   // Delete selected devices
