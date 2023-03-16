@@ -6,7 +6,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP32 Gateway</title>
-  <!-- <link href="bootstrap.min.css" rel="stylesheet"> -->
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <script src="bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -57,11 +58,11 @@
                   <div class="d-flex flex-column justify-content-center align-items-center">
                     <div class="mt-5">
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Frequency : </span>
+                        <span class="input-group-text">Frequency (KHz) : </span>
                         <input type="text" class="form-control" id="flash-freq" value="" readonly>
                       </div>
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Size : </span>
+                        <span class="input-group-text">Size (Mb) : </span>
                         <input type="text" class="form-control" id="flash-size" value="" readonly>
                       </div>
                     </div>
@@ -73,18 +74,18 @@
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
-                <b>Heap</b>
+                <b>RAM</b>
               </div>
               <div class="card-body">
                 <div class="container-sm">
                   <div class="d-flex flex-column justify-content-center align-items-center">
                     <div class="mt-5">
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Size : </span>
+                        <span class="input-group-text">Size (Kb) : </span>
                         <input type="text" class="form-control" id="heap-size" value="" readonly>
                       </div>
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Free : </span>
+                        <span class="input-group-text">Free (Kb) : </span>
                         <input type="text" class="form-control" id="heap-free" value="" readonly>
                       </div>
                     </div>
@@ -96,18 +97,18 @@
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
-                <b>Disk</b>
+                <b>Stockage</b>
               </div>
               <div class="card-body">
                 <div class="container-sm">
                   <div class="d-flex flex-column justify-content-center align-items-center">
                     <div class="mt-5">
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Size : </span>
+                        <span class="input-group-text">Size (Kb) : </span>
                         <input type="text" class="form-control" id="disk-size" value="" readonly>
                       </div>
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Used : </span>
+                        <span class="input-group-text">Used (Kb) : </span>
                         <input type="text" class="form-control" id="disk-used" value="" readonly>
                       </div>
                     </div>
@@ -332,10 +333,6 @@
       </div>
     </section>
   </main>
-  <script>
-    window.addEventListener('load', getSystemInfo);
-  </script>
-  <!-- <script src="bootstrap.bundle.min.js"></script> -->
   <script src="jquery.min.js"></script>
   <script type="text/javascript" src="script.js"></script>
 </body>
