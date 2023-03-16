@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESP32 Gateway</title>
-  <link href="bootstrap.min.css" rel="stylesheet">
+  <!-- <link href="bootstrap.min.css" rel="stylesheet"> -->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -197,42 +197,46 @@
           <div class="card mb-3">
             <div class="card-header"><b>WiFi</b></div>
             <div class="card-body">
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label for="espid" class="form-label">ESP ID</label>
-                    <div class="input-group border rounded">
-                      <input type="text" class="form-control border-0" id="espid" placeholder="ESP ID" name="espid">
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label for="WiFiname" class="form-label">WiFi name</label>
-                    <div class="input-group border rounded">
-                      <input type="text" class="form-control border-0" id="WiFiname" placeholder="Enter WiFi name" name="WiFiname">
+              <form id="wifi-form">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="espid" class="form-label">ESP ID</label>
+                      <div class="input-group border rounded">
+                        <input type="text" class="form-control border-0" id="espid" placeholder="ESP ID" name="espid">
                       </div>
+                    </div>
                   </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label for="WiFipassword" class="form-label">WiFi password</label>
-                    <div class="input-group border rounded">
-                      <input type="text" class="form-control border-0" id="WiFipassword" placeholder="Enter WiFi password" name="WiFipassword">
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="WiFiname" class="form-label">WiFi name</label>
+                      <div class="input-group border rounded">
+                        <input type="text" class="form-control border-0" id="WiFiname" placeholder="Enter WiFi name"
+                          name="WiFiname">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="WiFipassword" class="form-label">WiFi password</label>
+                      <div class="input-group border rounded">
+                        <input type="text" class="form-control border-0" id="WiFipassword"
+                          placeholder="Enter WiFi password" name="WiFipassword">
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12 text-end">
-                  <button id="savewifi" onclick="" class="btn btn-primary">Save</button>
+                <div class="row">
+                  <div class="col-md-12 text-end">
+                    <button id="savewifi" onclick="" class="btn btn-primary">Save</button>
+                  </div>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
 
         </div>
-      </div>
+      </div> 
     </section>
 
     <section id="device">
@@ -331,7 +335,7 @@
   <script>
     window.addEventListener('load', getSystemInfo);
   </script>
-  <script src="bootstrap.bundle.min.js"></script>
+  <!-- <script src="bootstrap.bundle.min.js"></script> -->
   <script src="jquery.min.js"></script>
   <script type="text/javascript" src="script.js"></script>
 </body>
