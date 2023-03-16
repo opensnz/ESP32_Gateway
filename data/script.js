@@ -245,13 +245,13 @@ function addDevice() {
 
 }
 
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", function() {
   // Delete selected devices
-  $("#delete").click(function() {
+  document.getElementById("delete").addEventListener("click", function() {
     // Get all selected checkboxes
-    var selected = $("input[type='checkbox'][name='device']:checked");
+    var checkboxes = document.querySelectorAll("input[type='checkbox'][name='device']:checked");
 
-    if (selected.length === 0) {
+    if (checkboxes.length === 0) {
       alert("Please select at least one device to delete.");
       return;
     }
@@ -262,22 +262,21 @@ $(document).ready(function() {
     }
 
     // Delete selected devices
-    selected.each(function() {
-      var devEUI = $(this).val();
+    checkboxes.forEach(function(checkbox) {
+      var devEUI = checkbox.value;
 
-      $.ajax({
-        url: "/device/delete",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ DevEUI: devEUI }),
-        success: function(result) {
-          // Remove the row from the table
-          $(this).closest("tr").remove();
-        },
-        error: function(xhr, textStatus, errorThrown) {
-          alert("Failed to delete device: " + devEUI);
-        }
-      });
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/device/delete");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function() {
+        // Remove the row from the table
+        checkbox.closest("tr").remove();
+      };
+      xhr.onerror = function() {
+        alert("Failed to delete device: " + devEUI);
+      };
+      xhr.send(JSON.stringify({ DevEUI: devEUI }));
     });
   });
 });
+
