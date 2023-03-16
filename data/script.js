@@ -54,37 +54,68 @@ function getSystemInfo() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
+  // create a new XMLHttpRequest object
   var xhr = new XMLHttpRequest();
+  
+  // open a GET request to "/device/all"
   xhr.open("GET", "/device/all");
+  
+  // handle the response from the server
   xhr.onload = function() {
+    // check if the response status is OK (200)
     if (xhr.status === 200) {
+      // parse the response as JSON
       var devices = JSON.parse(xhr.responseText);
+      
+      // get a reference to the table body
       var tbody = document.querySelector("#device-table tbody");
+      
+      // clear any existing rows in the table body
+      tbody.innerHTML = "";
+      
+      // loop through each device and add a row to the table for it
       devices.forEach(function(device) {
+        // create a new table row
         var tr = document.createElement("tr");
+        
+        // create a new table cell for the checkbox
+        var checkboxTd = document.createElement("td");
+        
+        // create a new checkbox element and set its attributes
         var checkbox = document.createElement("input");
         checkbox.setAttribute("type", "checkbox");
         checkbox.setAttribute("name", "device");
         checkbox.setAttribute("value", device.DevEUI);
-        tr.appendChild(document.createElement("td").appendChild(checkbox));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.DevEUI)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.AppEUI)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.AppKey)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.DevNonce)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.FPort)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.FCnt)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.NwkSKey)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.AppSKey)));
-        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.DevAddr)));
+        
+        // add the checkbox to the checkbox cell
+        checkboxTd.appendChild(checkbox);
+        
+        // add the checkbox cell to the row
+        tr.appendChild(checkboxTd);
+        
+        // loop through each property of the device object and create a new table cell for each one
+        for (var prop in device) {
+          if (device.hasOwnProperty(prop)) {
+            var td = document.createElement("td");
+            td.appendChild(document.createTextNode(device[prop]));
+            tr.appendChild(td);
+          }
+        }
+        
+        // add the row to the table body
         tbody.appendChild(tr);
       });
     } else {
       console.log("Error fetching devices:", xhr.statusText);
     }
   };
+  
+  // handle errors during the request
   xhr.onerror = function() {
     console.log("Error fetching devices:", xhr.statusText);
   };
+  
+  // send the request to the server
   xhr.send();
 });
 
