@@ -108,42 +108,11 @@ void WebClass::begin(void){
     {
         this->initWiFiSTA();
     }
-    
+
     this->serverGateway();
     Server.serveStatic("/", FILE_SYSTEM, "/");
     Server.begin();
 
-}
-
-
-
-void serverWiFiConfig(void){
-    Server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(FILE_SYSTEM, "/wifimanager.html", "text/html", false);
-    });
-    Server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
-        int params = request->params();
-        for(int i=0; i<params; i++){
-            AsyncWebParameter* p = request->getParam(i);
-            if(p->isPost())
-            {
-                SYSTEM_PRINT_LN(p->value());
-                if (p->name() == WEB_PARAM_SSID) 
-                {
-                    String ssid = p->value();
-                    System.writeFile(WEB_PATH_SSID, ssid);
-                }
-                else if(p->name() == WEB_PARAM_PASS) 
-                {
-                    String pass = p->value();
-                    System.writeFile(WEB_PATH_PASS, pass);
-                }
-            }
-        }
-        request->send(WEB_HTTP_OK, "text/plain", "Done. Gateway will restart");
-        delay(1000);
-        System.restart();
-    });
 }
 
 
@@ -173,7 +142,12 @@ void WebClass::serverGateway(void){
         {
             SYSTEM_PRINT_LN("################ Body ##############");
             JSONVar body = JSON.parse(String(data, len));
+            String content = JSON.stringify(body);
             SYSTEM_PRINT_LN(body);
+            if(!System.writeFile(FORWARDER_GATEWAY_FILE, content))
+            {
+                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+            }
             request->send(WEB_HTTP_OK);
         }
     );
@@ -184,7 +158,33 @@ void WebClass::serverGateway(void){
     {
         SYSTEM_PRINT_LN("################ Body ##############");
         JSONVar body = JSON.parse(String(data, len));
+        String content;
         SYSTEM_PRINT_LN(body);
+        if(!body.hasOwnProperty("ssid"))
+        {
+            return request->send(WEB_HTTP_BAD_REQUEST, "application/json", 
+                    JSON.stringify("{\"error\" : \"ssid required\"}"));
+        }else
+        {
+            content = (const char *)body["ssid"];
+            if(!System.writeFile(WEB_PATH_SSID, content))
+            {
+                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        if(!body.hasOwnProperty("pass"))
+        {
+            return request->send(WEB_HTTP_BAD_REQUEST, "application/json", 
+                    JSON.stringify("{\"error\" : \"password required\"}"));
+        }else
+        {
+            content = (const char *)body["ssid"];
+            if(!System.writeFile(WEB_PATH_PASS, content))
+            {
+                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
         request->send(WEB_HTTP_OK);
     }
     );
