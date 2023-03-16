@@ -146,7 +146,7 @@ void WebClass::serverGateway(void){
             SYSTEM_PRINT_LN(body);
             if(!System.writeFile(FORWARDER_GATEWAY_FILE, content))
             {
-                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+                return request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
             }
             request->send(WEB_HTTP_OK);
         }
@@ -169,7 +169,7 @@ void WebClass::serverGateway(void){
             content = (const char *)body["ssid"];
             if(!System.writeFile(WEB_PATH_SSID, content))
             {
-                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+                return request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -179,13 +179,15 @@ void WebClass::serverGateway(void){
                     JSON.stringify("{\"error\" : \"password required\"}"));
         }else
         {
-            content = (const char *)body["ssid"];
+            content = (const char *)body["pass"];
             if(!System.writeFile(WEB_PATH_PASS, content))
             {
-                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+                return request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
             }
         }
         request->send(WEB_HTTP_OK);
+        delay(100);
+        System.restart();
     }
     );
 

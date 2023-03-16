@@ -167,6 +167,29 @@ function generateRandomString(inputId, length) {
   input.value = result;
 }
 
+function saveWifi()
+{
+  fetch('/config/wifi', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ssid : document.getElementById("ssid").value,
+      pass : document.getElementById("pass").value
+    })
+  })
+  .then(function(response){ 
+    if(response.ok) {
+      alert("Config saved successfully.");
+    } else {
+      alert("Error saving config.");
+    }
+  }
+  )
+  .catch(error => console.log('Error:', error)); 
+}
+
 function addDevice() {
   console.log("add device");
 

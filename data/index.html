@@ -202,7 +202,7 @@
                 <div class="row">
                   <div class="col-md-4">
                     <div class="mb-3">
-                      <label for="espid" class="form-label">ESP ID</label>
+                      <label for="espid" class="form-label">Gateway IP</label>
                       <div class="input-group border rounded">
                         <input type="text" class="form-control border-0" id="espid" placeholder="ESP ID" name="espid">
                       </div>
@@ -212,7 +212,7 @@
                     <div class="mb-3">
                       <label for="WiFiname" class="form-label">WiFi name</label>
                       <div class="input-group border rounded">
-                        <input type="text" class="form-control border-0" id="WiFiname" placeholder="Enter WiFi name"
+                        <input type="text" class="form-control border-0" id="ssid" placeholder="Enter WiFi name"
                           name="WiFiname">
                       </div>
                     </div>
@@ -221,7 +221,7 @@
                     <div class="mb-3">
                       <label for="WiFipassword" class="form-label">WiFi password</label>
                       <div class="input-group border rounded">
-                        <input type="text" class="form-control border-0" id="WiFipassword"
+                        <input type="text" class="form-control border-0" id="pass"
                           placeholder="Enter WiFi password" name="WiFipassword">
                       </div>
                     </div>
@@ -229,7 +229,7 @@
                 </div>
                 <div class="row">
                   <div class="col-md-12 text-end">
-                    <button id="savewifi" onclick="" class="btn btn-primary">Save</button>
+                    <button id="savewifi" onclick="saveWifi()" class="btn btn-primary">Save</button>
                   </div>
                 </div>
               </form>
