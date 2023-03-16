@@ -52,6 +52,7 @@ void WebClass::initWeb(void){
 }
 
 void WebClass::initWiFiAP(void){
+    WiFi.mode(WIFI_MODE_AP);
     SYSTEM_PRINT_LN("Setting AP (Access Point)");
     if (!WiFi.softAPConfig(WEB_DEFAULT_IP, WEB_DEFAULT_GW, WEB_DEFAULT_SN)){
         SYSTEM_PRINT_LN("AP Failed to configure");
@@ -59,12 +60,11 @@ void WebClass::initWiFiAP(void){
     if(WiFi.softAP(WEB_DEFAULT_SSID, WEB_DEFAULT_PASS))
     {
         SYSTEM_PRINT("AP IP address: ");SYSTEM_PRINT_LN(WiFi.softAPIP());
-        this->server(WIFI_AP);
     }
 }
 
 void WebClass::initWiFiSTA(void){
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_MODE_STA);
     memcpy(SSID, this->ssid.c_str(), this->ssid.length()+1);
     memcpy(PASS, this->pass.c_str(), this->pass.length()+1);
     SYSTEM_PRINT_LN(SSID);
@@ -96,14 +96,12 @@ void WebClass::initWiFiSTA(void){
         WiFi.removeEvent(Web.disconnectedID);
         Web.initWiFiSTA();
     }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-
-    this->server(WIFI_STA);
 }
 
 void WebClass::begin(void){
 
     this->initWeb();
-
+    
     if(this->ssid=="" || this->pass==""){
         this->initWiFiAP();
     }else
@@ -111,53 +109,17 @@ void WebClass::begin(void){
         this->initWiFiSTA();
     }
 
-}
-
-void WebClass::server(wifi_mode_t mode){
-    if(mode == WIFI_AP)
-    {
-        this->serverWiFiConfig();
-    }else if(mode == WIFI_STA)
-    {
-        this->serverGatewayConfig();
-    }
+    this->serverGateway();
     Server.serveStatic("/", FILE_SYSTEM, "/");
     Server.begin();
+
 }
 
-void WebClass::serverWiFiConfig(void){
-    Server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(FILE_SYSTEM, "/wifimanager.html", "text/html", false);
-    });
-    Server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
-        int params = request->params();
-        for(int i=0; i<params; i++){
-            AsyncWebParameter* p = request->getParam(i);
-            if(p->isPost())
-            {
-                SYSTEM_PRINT_LN(p->value());
-                if (p->name() == WEB_PARAM_SSID) 
-                {
-                    String ssid = p->value();
-                    System.writeFile(WEB_PATH_SSID, ssid);
-                }
-                else if(p->name() == WEB_PARAM_PASS) 
-                {
-                    String pass = p->value();
-                    System.writeFile(WEB_PATH_PASS, pass);
-                }
-            }
-        }
-        request->send(WEB_HTTP_OK, "text/plain", "Done. Gateway will restart");
-        delay(1000);
-        System.restart();
-    });
-}
 
-//TODO
-void WebClass::serverGatewayConfig(void){
+void WebClass::serverGateway(void){
+
     Server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(FILE_SYSTEM, "/index.html", "text/html", false, gatewayConfig);
+        request->send(FILE_SYSTEM, "/index.html", "text/html", false);
     });
 
     Server.on("/system", HTTP_GET, 
@@ -180,7 +142,12 @@ void WebClass::serverGatewayConfig(void){
         {
             SYSTEM_PRINT_LN("################ Body ##############");
             JSONVar body = JSON.parse(String(data, len));
+            String content = JSON.stringify(body);
             SYSTEM_PRINT_LN(body);
+            if(!System.writeFile(FORWARDER_GATEWAY_FILE, content))
+            {
+                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+            }
             request->send(WEB_HTTP_OK);
         }
     );
@@ -191,7 +158,33 @@ void WebClass::serverGatewayConfig(void){
     {
         SYSTEM_PRINT_LN("################ Body ##############");
         JSONVar body = JSON.parse(String(data, len));
+        String content;
         SYSTEM_PRINT_LN(body);
+        if(!body.hasOwnProperty("ssid"))
+        {
+            return request->send(WEB_HTTP_BAD_REQUEST, "application/json", 
+                    JSON.stringify("{\"error\" : \"ssid required\"}"));
+        }else
+        {
+            content = (const char *)body["ssid"];
+            if(!System.writeFile(WEB_PATH_SSID, content))
+            {
+                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        if(!body.hasOwnProperty("pass"))
+        {
+            return request->send(WEB_HTTP_BAD_REQUEST, "application/json", 
+                    JSON.stringify("{\"error\" : \"password required\"}"));
+        }else
+        {
+            content = (const char *)body["ssid"];
+            if(!System.writeFile(WEB_PATH_PASS, content))
+            {
+                request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
         request->send(WEB_HTTP_OK);
     }
     );
@@ -332,12 +325,6 @@ bool WebClass::serverDeleteDevice(JSONVar & body)
     return Device.removeDevice(info);
 }
 
-/*********************** Global Function Implementations ************************/
-
-
-String gatewayConfig(const String & var){
-    return String();
-}
 
 
 /*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/

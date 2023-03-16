@@ -54,13 +54,10 @@
 #define WEB_HTTP_BAD_REQUEST           400
 #define WEB_HTTP_INTERNAL_SERVER_ERROR 500
 
-#define WEB_PARAM_DEVEUI "deveui"
-#define WEB_PARAM_APPEUI "appeui"
-#define WEB_PARAM_APPKEY "appkey"
+#define WEB_DEVADDR_DEFAULT  "00000000"
+#define WEB_NWKSKEY_DEFAULT  "00000000000000000000000000000000"
+#define WEB_APPSKEY_DEFAULT  "00000000000000000000000000000000"
 
-#define WEB_PARAM_GWEUI  "gweui"
-#define WEB_PARAM_FWHOST "host"
-#define WEB_PARAM_FWPORT "port"
 
 class WebClass
 {
@@ -72,9 +69,7 @@ private:
     void initWeb(void);
     void initWiFiAP(void);
     void initWiFiSTA(void);
-    void serverWiFiConfig(void);
-    void serverGatewayConfig(void);
-    void server(wifi_mode_t mode);
+    void serverGateway(void);
 
 public:
     void begin(void);
@@ -88,9 +83,6 @@ public:
 extern WebClass Web;
 
 
-/******************* Global Function Prototypes ************************/
-
-String gatewayConfig(const String & var);
 
 #endif /* __WEB_H__ */
 
