@@ -72,9 +72,7 @@ private:
     void initWeb(void);
     void initWiFiAP(void);
     void initWiFiSTA(void);
-    void serverWiFiConfig(void);
-    void serverGatewayConfig(void);
-    void server(wifi_mode_t mode);
+    void serverGateway(void);
 
 public:
     void begin(void);
@@ -88,9 +86,6 @@ public:
 extern WebClass Web;
 
 
-/******************* Global Function Prototypes ************************/
-
-String gatewayConfig(const String & var);
 
 #endif /* __WEB_H__ */
 
