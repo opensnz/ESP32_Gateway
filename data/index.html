@@ -5,8 +5,6 @@
   <meta charset="UTF-8">
   <title>ESP32 Gateway</title>
   <link href="bootstrap.min.css" rel="stylesheet">
-  <script src="bootstrap.bundle.min.js"></script>
-  <script type="text/javascript" src="script.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -23,18 +21,18 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#home">
-                <button class="btn" onclick="menuOnClick('#home')">Home</button>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#device">
-                <button class="btn" onclick="menuOnClick('#device')">Device</button>
+              <a class="nav-link" href="#system">
+                <button class="btn" onclick="menuOnClick('#system')">System</button>
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#network">
                 <button class="btn" onclick="menuOnClick('#network')">Network</button>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#device">
+                <button class="btn" onclick="menuOnClick('#device')">Device</button>
               </a>
             </li>
           </ul>
@@ -43,14 +41,14 @@
     </nav>
   </header>
   <main>
-    <section id="home">
-      <div class="container-fluid mt-2">
+    <section id="system">
+      <div class="container-fluid mt-3">
         <h3>System</h3>
         <div class="row">
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
-                Flash
+                <b>Flash</b>
               </div>
               <div class="card-body">
                 <div class="container-sm">
@@ -74,7 +72,7 @@
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
-                Heap
+                <b>Heap</b>
               </div>
               <div class="card-body">
                 <div class="container-sm">
@@ -98,7 +96,7 @@
           <div class="col-lg-4">
             <div class="card mb-3">
               <div class="card-header">
-                Disk
+                <b>Disk</b>
               </div>
               <div class="card-body">
                 <div class="container-sm">
@@ -121,12 +119,188 @@
         </div>
       </div>
     </section>
+
+    <section id="network">
+      <div class="container-fluid mt-3">
+        <h3>Network</h3>
+        <div class="col-lg-12">
+          <div class="card mb-3">
+            <div class="card-body">
+              <form id="gateway-form">
+                <div class="row">
+                  <div class="col-sm-4">
+                    <div class="mb-3">
+                      <label for="id" class="form-label">ID</label>
+                      <input type="text" class="form-control" id="id" placeholder="ID">
+                    </div>
+                    <div class="mb-3">
+                      <label for="host" class="form-label">Host</label>
+                      <input type="text" class="form-control" id="host" placeholder="Host">
+                    </div>
+                    <div class="mb-3">
+                      <label for="port" class="form-label">Port</label>
+                      <input type="text" class="form-control" id="port" placeholder="Port">
+                    </div>
+                    <div class="mb-3">
+                      <label for="lat" class="form-label">Latitude</label>
+                      <input type="text" class="form-control" id="lat" placeholder="Latitude">
+                    </div>
+                  </div>
+                  <div class="col-sm-4">
+                    <div class="mb-3">
+                      <label for="lon" class="form-label">Longitude</label>
+                      <input type="text" class="form-control" id="lon" placeholder="Longitude">
+                    </div>
+                    <div class="mb-3">
+                      <label for="alt" class="form-label">Altitude</label>
+                      <input type="text" class="form-control" id="alt" placeholder="Altitude">
+                    </div>
+                    <div class="mb-3">
+                      <label for="alive" class="form-label">Alive</label>
+                      <input type="text" class="form-control" id="alive" placeholder="Alive">
+                    </div>
+                    <div class="mb-3">
+                      <label for="stat" class="form-label">Stat</label>
+                      <input type="text" class="form-control" id="stat" placeholder="Stat">
+                    </div>
+                  </div>
+                  <div class="col-sm-4">
+                    <div class="mb-3">
+                      <label for="freq" class="form-label">Frequency</label>
+                      <input type="text" class="form-control" id="freq" placeholder="Frequency">
+                    </div>
+                    <div class="mb-3">
+                      <label for="bw" class="form-label">Bandwidth</label>
+                      <input type="text" class="form-control" id="bw" placeholder="Bandwidth">
+                    </div>
+                    <div class="mb-3">
+                      <label for="sf" class="form-label">Spreading Factor</label>
+                      <input type="text" class="form-control" id="sf" placeholder="Spreading Factor">
+                    </div>
+                    <div class="mb-3">
+                      <label for="cr" class="form-label">Coding Rate</label>
+                      <input type="text" class="form-control" id="cr" placeholder="Coding Rate">
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="device">
+      <div class="container-fluid mt-3">
+        <h3>Devices</h3>
+        <div class="col-lg-12">
+          <div class="card mb-3">
+            <div class="card-header"><b>Add Device</b></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label for="DevEUI" class="form-label">DevEUI:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="DevEUI" placeholder="Enter DevEUI" name="DevEUI"
+                        aria-describedby="DevEUIError">
+                      <button type="button" class="btn btn-light"
+                        onclick="generateRandomString('DevEUI',16)">Generate</button>
+                    </div>
+                    <div class="form-text" id="DevEUIError">Length must be 16 characters long and contain only numbers
+                      and
+                      letters a-f.</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label for="AppEUI" class="form-label">AppEUI:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="AppEUI" placeholder="Enter AppEUI" name="AppEUI"
+                        aria-describedby="AppEUIError">
+                      <button type="button" class="btn btn-light"
+                        onclick="generateRandomString('AppEUI',16)">Generate</button>
+                    </div>
+                    <div class="form-text" id="AppEUIError">Length must be 16 characters long and contain only numbers
+                      and
+                      letters a-f.</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <label for="AppKey" class="form-label">AppKey:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="AppKey" placeholder="Enter AppKey" name="AppKey"
+                        aria-describedby="AppKeyError">
+                      <button type="button" class="btn btn-light"
+                        onclick="generateRandomString('AppKey',32)">Generate</button>
+                    </div>
+                    <div class="form-text" id="AppKeyError">Length must be 32 characters long and contain only numbers
+                      and
+                      letters a-f.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12 text-end">
+                  <button id="add" onclick="addDevice()" class="btn btn-primary">Add device</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+        <div class="col-lg-12">
+          <div class="card mb-3">
+            <div class="card-header"><b>All Device</b></div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12 text-end mb-3">
+                  <button id="delete" class="btn btn-danger">Delete selected</button>
+                </div>
+              </div>
+              <div class="row">
+                <div class="table table-bordered table-responsive">
+                  <table id="device-table" class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>DevEUI</th>
+                        <th>AppEUI</th>
+                        <th>AppKey</th>
+                        <th>DevNonce</th>
+                        <th>FPort</th>
+                        <th>FCnt</th>
+                        <th>NwkSKey</th>
+                        <th>AppSKey</th>
+                        <th>DevAddr</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
   </main>
 
 
   <script>
     window.addEventListener('load', getSystemInfo);
   </script>
+  <script src="bootstrap.bundle.min.js"></script>
+  <script src="jquery.min.js"></script>
+  <script type="text/javascript" src="script.js"></script>
 </body>
 
 </html>
