@@ -3,6 +3,8 @@ var selected = 0;
 // Launch main function
 document.addEventListener("DOMContentLoaded", function(){
     home();
+    
+  getSystemInfo();
 });
 
 
@@ -41,12 +43,12 @@ function getSystemInfo() {
   fetch('/system')
     .then(response => response.json())
     .then(data => {
-      document.getElementById('flash-freq').value = data.flash.freq;
-      document.getElementById('flash-size').value = data.flash.size;
-      document.getElementById('heap-size').value = data.heap.size;
-      document.getElementById('heap-free').value = data.heap.free;
-      document.getElementById('disk-size').value = data.disk.size;
-      document.getElementById('disk-used').value = data.disk.used;
+      document.getElementById('flash-freq').value = data.flash.freq/1000000;
+      document.getElementById('flash-size').value = data.flash.size/(1024*1024);
+      document.getElementById('heap-size').value = data.heap.size/1024;
+      document.getElementById('heap-free').value = data.heap.free/1024;
+      document.getElementById('disk-size').value = data.disk.size/1024;
+      document.getElementById('disk-used').value = data.disk.used/1024;
     })
     .catch(error => console.error(error));
 }

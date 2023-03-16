@@ -90,7 +90,8 @@ bool DeviceClass::removeDevice(Device_info_t & info)
         String content;
         if(System.readFile(path, content))
         {
-            JSONVar config, new_config;
+            String conf = "[]";
+            JSONVar config, new_config = JSON.parse(conf);
             config = JSON.parse(content);
             uint8_t length = (uint8_t)config.length();
             uint8_t count = 0;

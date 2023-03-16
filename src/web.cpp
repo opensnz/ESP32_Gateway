@@ -174,7 +174,7 @@ void WebClass::serverGatewayConfig(void){
         }
     );
 
-    Server.on("/gateway", HTTP_POST, 
+    Server.on("/config/network", HTTP_POST, 
         [](AsyncWebServerRequest *request){}, NULL, 
         [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
         {
@@ -183,6 +183,17 @@ void WebClass::serverGatewayConfig(void){
             SYSTEM_PRINT_LN(body);
             request->send(WEB_HTTP_OK);
         }
+    );
+
+    Server.on("/config/wifi", HTTP_POST, 
+    [](AsyncWebServerRequest *request){}, NULL, 
+    [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+    {
+        SYSTEM_PRINT_LN("################ Body ##############");
+        JSONVar body = JSON.parse(String(data, len));
+        SYSTEM_PRINT_LN(body);
+        request->send(WEB_HTTP_OK);
+    }
     );
 
     Server.on("/device/all", HTTP_GET, [](AsyncWebServerRequest *request){
