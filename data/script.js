@@ -53,33 +53,41 @@ function getSystemInfo() {
     .catch(error => console.error(error));
 }
 
-$(document).ready(function() {
-  $.ajax({
-    url: "/device/all", 
-    type: "GET",
-    dataType: "json",
-    success: function(devices) {
-      var tbody = $("#device-table tbody");
-      $.each(devices, function(i, device) {
-        var tr = $("<tr>");
-        tr.append($("<td>").html("<input type='checkbox' name='device' value='" + device.DevEUI + "'>"));
-        tr.append($("<td>").text(device.DevEUI));
-        tr.append($("<td>").text(device.AppEUI));
-        tr.append($("<td>").text(device.AppKey));
-        tr.append($("<td>").text(device.DevNonce));
-        tr.append($("<td>").text(device.FPort));
-        tr.append($("<td>").text(device.FCnt));
-        tr.append($("<td>").text(device.NwkSKey));
-        tr.append($("<td>").text(device.AppSKey));
-        tr.append($("<td>").text(device.DevAddr));
-        tbody.append(tr);
+document.addEventListener("DOMContentLoaded", function() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/device/all");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var devices = JSON.parse(xhr.responseText);
+      var tbody = document.querySelector("#device-table tbody");
+      devices.forEach(function(device) {
+        var tr = document.createElement("tr");
+        var checkbox = document.createElement("input");
+        checkbox.setAttribute("type", "checkbox");
+        checkbox.setAttribute("name", "device");
+        checkbox.setAttribute("value", device.DevEUI);
+        tr.appendChild(document.createElement("td").appendChild(checkbox));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.DevEUI)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.AppEUI)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.AppKey)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.DevNonce)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.FPort)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.FCnt)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.NwkSKey)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.AppSKey)));
+        tr.appendChild(document.createElement("td").appendChild(document.createTextNode(device.DevAddr)));
+        tbody.appendChild(tr);
       });
-    },
-    error: function(xhr, status, error) {
-      console.log("Error fetching devices:", error);
+    } else {
+      console.log("Error fetching devices:", xhr.statusText);
     }
-  });
+  };
+  xhr.onerror = function() {
+    console.log("Error fetching devices:", xhr.statusText);
+  };
+  xhr.send();
 });
+
 
 // Define the form element
 const form = document.getElementById("gateway-form");
