@@ -147,26 +147,19 @@ bool SystemClass::taskBeforePowerOFF(void){
 
 bool SystemClass::getSystemInfo(String & info)
 {
-    try
-    {
-        JSONVar system;
-        system["cpu"]["freq"] = ESP.getCpuFreqMHz()*(1000000);
-        system["cpu"]["core"] = ESP.getChipCores();
-        system["chip"]["mdl"] = ESP.getChipModel();
-        system["chip"]["rev"] = ESP.getChipRevision();
-        system["flash"]["freq"] = ESP.getFlashChipSpeed();
-        system["flash"]["size"] = ESP.getFlashChipSize();
-        system["heap"]["size"] = ESP.getHeapSize();
-        system["heap"]["free"] = ESP.getFreeHeap();
-        system["disk"]["size"] = FILE_SYSTEM.totalBytes();
-        system["disk"]["used"] = FILE_SYSTEM.usedBytes();
-        info = JSON.stringify(system);
-        return true;
-    }
-    catch(const std::exception& e)
-    {
-        return false;
-    }
+    JSONVar system;
+    system["cpu"]["freq"] = ESP.getCpuFreqMHz()*(1000000);
+    system["cpu"]["core"] = ESP.getChipCores();
+    system["chip"]["mdl"] = ESP.getChipModel();
+    system["chip"]["rev"] = ESP.getChipRevision();
+    system["flash"]["freq"] = ESP.getFlashChipSpeed();
+    system["flash"]["size"] = ESP.getFlashChipSize();
+    system["heap"]["size"] = ESP.getHeapSize();
+    system["heap"]["free"] = ESP.getFreeHeap();
+    system["disk"]["size"] = FILE_SYSTEM.totalBytes();
+    system["disk"]["used"] = FILE_SYSTEM.usedBytes();
+    info = JSON.stringify(system);
+    return true;
 }
 
 
