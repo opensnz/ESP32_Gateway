@@ -119,43 +119,80 @@ document.addEventListener("DOMContentLoaded", function() {
   xhr.send();
 });
 
+function saveSettings() {
+  // Get the values from the input fields
+  var id = document.getElementById("id").value;
+  var host = document.getElementById("host").value;
+  var port = document.getElementById("port").value;
+  var lat = document.getElementById("lat").value;
+  var lon = document.getElementById("lon").value;
+  var alt = document.getElementById("alt").value;
+  var alive = document.getElementById("alive").value;
+  var stat = document.getElementById("stat").value;
+  var freq = document.getElementById("freq").value;
+  var bw = document.getElementById("bw").value;
+  var sf = document.getElementById("sf").value;
+  var cr = document.getElementById("cr").value;
 
-// Define the form element
-const form = document.getElementById("gateway-form");
+  // Create a JSON object with the values
+  var data = {
+    id: id,
+    host: host,
+    port: port,
+    lat: lat,
+    lon: lon,
+    alt: alt,
+    alive: alive,
+    stat: stat,
+    freq: freq,
+    bw: bw,
+    sf: sf,
+    cr: cr
+  };
 
-// Define the form fields
-const idField = form.querySelector("#id");
-const hostField = form.querySelector("#host");
-const portField = form.querySelector("#port");
-const latField = form.querySelector("#lat");
-const lonField = form.querySelector("#lon");
-const altField = form.querySelector("#alt");
-const aliveField = form.querySelector("#alive");
-const statField = form.querySelector("#stat");
-const freqField = form.querySelector("#freq");
-const bwField = form.querySelector("#bw");
-const sfField = form.querySelector("#sf");
-const crField = form.querySelector("#cr");
-
-// Fetch the gateway data from the JSON file
-fetch("gateway.json")
-  .then(response => response.json())
-  .then(data => {
-    // Populate the form fields with the gateway data
-    idField.value = data.id;
-    hostField.value = data.host.join(".");
-    portField.value = data.port;
-    latField.value = data.lat;
-    lonField.value = data.lon;
-    altField.value = data.alt;
-    aliveField.value = data.alive;
-    statField.value = data.stat;
-    freqField.value = data.freq;
-    bwField.value = data.bw;
-    sfField.value = data.sf;
-    crField.value = data.cr;
+  // Send a POST request to the server with the JSON data
+  fetch('/config/network', {
+    method: 'POST',
+    body: JSON.stringify(data)
   })
-  .catch(error => console.error(error));
+  .then(function(response) {
+    // Handle the response from the server
+    if (response.status == 200) {
+      alert('Settings saved successfully');
+    } else {
+      alert('Error saving settings');
+    }
+  })
+  .catch(function(error) {
+    alert('Error saving settings');
+  });
+}
+
+window.onload = function() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/gateway.json');
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var data = JSON.parse(xhr.responseText);
+      document.getElementById('id').value = data.id;
+      document.getElementById('host').value = data.host;
+      document.getElementById('port').value = data.port;
+      document.getElementById('lat').value = data.lat;
+      document.getElementById('lon').value = data.lon;
+      document.getElementById('alt').value = data.alt;
+      document.getElementById('alive').value = data.alive;
+      document.getElementById('stat').value = data.stat;
+      document.getElementById('freq').value = data.freq;
+      document.getElementById('bw').value = data.bw;
+      document.getElementById('sf').value = data.sf;
+      document.getElementById('cr').value = data.cr;
+    } else {
+      console.error('Error retrieving gateway data');
+    }
+  };
+  xhr.send();
+};
+  
 
 function generateRandomString(inputId, length) {
   var chars = '0123456789abcdef';
@@ -234,6 +271,7 @@ function addDevice() {
   .then(response => {
     if(response.ok) {
       alert("Device added successfully.");
+      location.reload();
     } else {
       alert("Error adding device.");
     }
