@@ -240,6 +240,7 @@ function addDevice() {
     AppEUI: appEUI,
     AppKey: appKey
   };
+  
 
   // Check if the DevEUI and AppEUI are in the correct format
   const regex = /^[0-9a-f]{16}$/;
