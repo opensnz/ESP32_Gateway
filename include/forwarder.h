@@ -30,7 +30,6 @@
 
 #include <Arduino.h>
 #include <freertos/queue.h>
-#include <map>
 #include <WiFi.h>
 #include <AsyncUDP.h>
 #include "device.h"
@@ -59,7 +58,7 @@
 
 #define FORWARDER_GATEWAY_EUI_SIZE        8
 #define FORWARDER_GATEWAY_FILE            "/gateway.json"
-#define FORWARDER_HOST_DEFAULT            IPAddress(192, 168, 10, 67)
+#define FORWARDER_HOST_DEFAULT            "192.168.1.1"
 #define FORWARDER_PORT_DEFAULT            1700
 
 #define FORWARDER_QUEUE_SIZE    DEVICE_TOTAL
@@ -135,10 +134,11 @@ private:
     void loop(void);
 
 public:
-    ForwarderClass(IPAddress host, uint16_t port = FORWARDER_PORT_DEFAULT);
+    ForwarderClass();
+    ForwarderClass(const char * host, uint16_t port = FORWARDER_PORT_DEFAULT);
     bool loadConfig(void);
     void handle(const uint8_t * data, uint32_t size);
-    void setHost(IPAddress host);
+    void setHost(const char * host);
     void setPort(uint16_t port);
     IPAddress * getHost();
     uint16_t getPort();

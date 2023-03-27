@@ -136,6 +136,17 @@ void WebClass::serverGateway(void){
         }
     );
 
+    Server.on("/config/network", HTTP_GET, 
+    [](AsyncWebServerRequest *request)
+    {
+        String content;
+        if(!System.readFile(FORWARDER_GATEWAY_FILE, content))
+        {
+            return request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+        }
+        request->send(WEB_HTTP_OK, "application/json", content);
+    });
+
     Server.on("/config/network", HTTP_POST, 
         [](AsyncWebServerRequest *request){}, NULL, 
         [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
@@ -151,6 +162,32 @@ void WebClass::serverGateway(void){
             request->send(WEB_HTTP_OK);
         }
     );
+
+    Server.on("/config/wifi", HTTP_GET, 
+        [](AsyncWebServerRequest *request)
+    {
+        JSONVar config;
+        String content;
+        if(WiFi.status() == WL_CONNECTED)
+        {
+            config["ip"] = WiFi.localIP().toString();
+        }else
+        {
+            config["ip"] = WiFi.softAPIP().toString();
+        }
+        if(!System.readFile(WEB_PATH_SSID, content))
+        {
+            return request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+        }
+        config["ssid"] = content;
+        if(!System.readFile(WEB_PATH_PASS, content))
+        {
+            return request->send(WEB_HTTP_INTERNAL_SERVER_ERROR);
+        }
+        config["pass"] = content;
+        content = JSON.stringify(config);
+        request->send(WEB_HTTP_OK, "application/json", content);
+    });
 
     Server.on("/config/wifi", HTTP_POST, 
     [](AsyncWebServerRequest *request){}, NULL, 

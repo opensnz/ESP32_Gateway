@@ -33,10 +33,12 @@ QueueHandle_t qGatewayToForwarder = NULL;
 QueueHandle_t qForwarderToGateway = NULL;
 TaskHandle_t hForwarder   = NULL;
 
-ForwarderClass Forwarder(FORWARDER_HOST_DEFAULT, FORWARDER_PORT_DEFAULT);
+ForwarderClass Forwarder;
 
-ForwarderClass::ForwarderClass(IPAddress host, uint16_t port){
-    this->host = host;
+ForwarderClass::ForwarderClass(){}
+
+ForwarderClass::ForwarderClass(const char * host, uint16_t port){
+    this->host.fromString(host);
     this->port = port;
 }
 
@@ -46,11 +48,7 @@ bool ForwarderClass::loadConfig(void){
     if(System.readFile(FORWARDER_GATEWAY_FILE, content))
     {
         config = JSON.parse(content);
-        this->host = IPAddress( (uint8_t)config["host"][0],
-                                (uint8_t)config["host"][1],
-                                (uint8_t)config["host"][2],
-                                (uint8_t)config["host"][3]
-        );
+        this->host.fromString((const char *)config["host"]);
         this->port = (uint16_t)config["port"];
         this->handler.setGatewayID((const char *)config["id"]);
         this->handler.gatewayLati = (double)config["lat"];
@@ -121,8 +119,8 @@ void ForwarderClass::loop(void){
     
 }
 
-void ForwarderClass::setHost(IPAddress host){
-    this->host = host;
+void ForwarderClass::setHost(const char * host){
+    this->host.fromString(host);
 }
 
 void ForwarderClass::setPort(uint16_t port){
