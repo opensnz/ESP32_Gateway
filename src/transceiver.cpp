@@ -62,7 +62,6 @@ void TransceiverClass::loop(void){
                         ULONG_MAX,       /* Reset the notification value to 0 on exit. */
                         &packetSize,     /* Notified value pass out in packetSize. */
                         portMAX_DELAY ); /* Block indefinitely. */
-        //LoRa.idle();
         if(packetSize <= DEVICE_DEV_EUI_SIZE + 4)
         {
             continue;
