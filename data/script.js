@@ -156,8 +156,8 @@ function getWiFiSettings() {
     if (xhr.status === 200) {
       var data = JSON.parse(xhr.responseText);
       document.getElementById('id').value = data.ip;
-      document.getElementById('host').value = data.ssid;
-      document.getElementById('port').value = data.pass;
+      document.getElementById('ssid').value = data.ssid;
+      document.getElementById('pass').value = data.pass;
     } else {
       console.error('Error retrieving gateway data');
     }
@@ -221,7 +221,7 @@ function addDevice() {
   .then(response => {
     if(response.ok) {
       alert("Device added successfully.");
-      //location.reload();
+      location.reload();
     } else {
       alert("Error adding device.");
     }
