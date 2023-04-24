@@ -24,12 +24,12 @@ function getSystemInfo() {
   fetch('/system')
     .then(response => response.json())
     .then(data => {
-      document.getElementById('flash-freq').value = data.flash.freq/1000000;
-      document.getElementById('flash-size').value = data.flash.size/(1024*1024);
-      document.getElementById('heap-size').value = data.heap.size/1024;
-      document.getElementById('heap-free').value = data.heap.free/1024;
-      document.getElementById('disk-size').value = data.disk.size/1024;
-      document.getElementById('disk-used').value = data.disk.used/1024;
+      document.getElementById('flash-freq').value = parseFloat(data.flash.freq/1000000).toFixed(3);
+      document.getElementById('flash-size').value = parseFloat(data.flash.size/(1024*1024)).toFixed(3);
+      document.getElementById('heap-size').value = parseFloat(data.heap.size/1024).toFixed(3);
+      document.getElementById('heap-free').value = parseFloat(data.heap.free/1024).toFixed(3);
+      document.getElementById('disk-size').value = parseFloat(data.disk.size/1024).toFixed(3);
+      document.getElementById('disk-used').value = parseFloat(data.disk.used/1024).toFixed(3);
     })
     .catch(error => console.error(error));
 }
@@ -38,6 +38,10 @@ function getDevices() {
   xhr.open("GET", "/device/all");
   xhr.onload = function() {
     if (xhr.status === 200) {
+      if(xhr.responseText == "{}")
+      {
+        return;
+      }
       var devices = JSON.parse(xhr.responseText);
       var tbody = document.querySelector("#device-table tbody");
       var thead = document.querySelector("#device-table thead tr");
@@ -114,8 +118,8 @@ function saveSettings() {
     id: id,
     host: host,
     port: parseInt(port),
-    lat: parseFloat(lat).toFixed(5),
-    lon: parseFloat(lon).toFixed(5),
+    lat: parseFloat(parseFloat(lat).toFixed(5)),
+    lon: parseFloat(parseFloat(lon).toFixed(5)),
     alt: parseInt(alt),
     alive: parseInt(alive),
     stat: parseInt(stat),
