@@ -300,6 +300,11 @@ bool WebClass::serverGetDevices(JSONVar & body)
     }
     JSONVar config = JSON.parse(content);
     uint8_t length = (uint8_t)config.length();
+    if(length == 0)
+    {
+        body = JSON.parse("{}");
+        return true;
+    }
     for(uint8_t i=0; i<length; i++)
     {
         path = String("/") + (const char *)config[i] + DEVICE_FILE_INFO_EXT;
