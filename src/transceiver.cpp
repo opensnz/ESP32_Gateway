@@ -63,43 +63,42 @@ void TransceiverClass::loop(void){
                         &packetSize,     /* Notified value pass out in packetSize. */
                         portMAX_DELAY ); /* Block indefinitely. */
         //LoRa.idle();
-        if(packetSize > DEVICE_DEV_EUI_SIZE + 4)
+        if(packetSize <= DEVICE_DEV_EUI_SIZE + 4)
         {
-            tData.rssi = LoRa.packetRssi();
-            tData.snr = LoRa.packetSnr();
-            char payload[packetSize];
-            memset(payload, 0x00, packetSize);
-            // read packet
-            LoRa.read(); // NetID
-            LoRa.read(); // MsgID
-            for (int i = 0; i < packetSize-4; i++) {
-                payload[i] = (char)LoRa.read();
-            }
-            LoRa.read(); // EndPayload
-            LoRa.read(); // EndMsg
-            SYSTEM_PRINT_LN(payload);
-            if(packetSize%4 == 0 && this->isBase64(payload))
-            {
-                tData.payloadSize = LoRaWAN_Base64_To_Binary(payload, packetSize-4, tData.payload, DEVICE_PAYLOAD_MAX_SIZE);
-                arrayToHexString(tData.payload, DEVICE_DEV_EUI_SIZE, path);
-                path = String("/") + path + DEVICE_FILE_INFO_EXT;
-                if(System.exists(path))
-                {
-                    memcpy(tData.DevEUI, tData.payload, DEVICE_DEV_EUI_SIZE);
-                    memcpy(tData.payload, &tData.payload[DEVICE_DEV_EUI_SIZE], tData.payloadSize-DEVICE_DEV_EUI_SIZE);
-                    printTransceiverData(&tData);
-                    if(qTransceiverToGateway != NULL)
-                    {
-                        xQueueSend(qTransceiverToGateway, &tData, portMAX_DELAY);
-                    }
-                }else
-                {
-                    SYSTEM_PRINT_LN("Device not configured");
-                }
-            }else
-            {
-                SYSTEM_PRINT_LN("Incorrect Frame");
-            }
+            continue;
+        }
+        tData.rssi = LoRa.packetRssi();
+        tData.snr = LoRa.packetSnr();
+        char payload[packetSize];
+        memset(payload, 0x00, packetSize);
+        // read packet
+        LoRa.read(); // NetID
+        LoRa.read(); // MsgID
+        for (int i = 0; i < packetSize-4; i++) {
+            payload[i] = (char)LoRa.read();
+        }
+        LoRa.read(); // EndPayload
+        LoRa.read(); // EndMsg
+        SYSTEM_PRINT_LN(payload);
+        if(packetSize%4 != 0 || !this->isBase64(payload))
+        {
+            SYSTEM_PRINT_LN("Incorrect Frame");
+            continue;
+        }
+        tData.payloadSize = LoRaWAN_Base64_To_Binary(payload, packetSize-4, tData.payload, DEVICE_PAYLOAD_MAX_SIZE);
+        arrayToHexString(tData.payload, DEVICE_DEV_EUI_SIZE, path);
+        path = String("/") + path + DEVICE_FILE_INFO_EXT;
+        if(!System.exists(path))
+        {
+            SYSTEM_PRINT_LN("Device not configured");
+            continue;
+        }
+        memcpy(tData.DevEUI, tData.payload, DEVICE_DEV_EUI_SIZE);
+        memcpy(tData.payload, &tData.payload[DEVICE_DEV_EUI_SIZE], tData.payloadSize-DEVICE_DEV_EUI_SIZE);
+        printTransceiverData(&tData);
+        if(qTransceiverToGateway != NULL)
+        {
+            xQueueSend(qTransceiverToGateway, &tData, portMAX_DELAY);
         }
     }
 }

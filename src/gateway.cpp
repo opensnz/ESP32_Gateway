@@ -50,7 +50,7 @@ void GatewayClass::tSetup(void){
         SYSTEM_LOGF_LN("Failed to create semaphore= %p", this->semaphore);
     }else
     {
-        // 
+        // Release semaphore for first use
         xSemaphoreGive(this->semaphore);
     }
     xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", 10000, NULL, TASK_PRIORITY, &joinTaskHandler, 1);
@@ -80,7 +80,6 @@ void GatewayClass::tLoop(void){
         device.payloadSize = tData.payloadSize;
         if(!Device.isDeviceConfigured(device.info))
         {
-            // device not configured
             SYSTEM_PRINT_LN("Device not configured");
             continue;
         }
@@ -94,9 +93,6 @@ void GatewayClass::tLoop(void){
             // UnconfirmedDataUp needed
             this->dataUp(device);
         }
-        
-    
-        
     }
 }
 
@@ -137,21 +133,22 @@ void GatewayClass::fLoop(void){
         {
             SYSTEM_LOG("JoinAccept PHYPayload : ");SYSTEM_PRINT_LN(PHYPayload);
             status = xQueueReceive(qJGateway, device.info.DevEUI, portMAX_DELAY);
-            if(status == pdTRUE)
+            if(status == pdFALSE)
             {
-                Device.loadDevice(device.info);
-                device.info.DevNonce--;
-                if(Encoder.joinAccept(device, PHYPayload))
-                {
-                    SYSTEM_LOG_LN("JoinAccept done");
-                    device.info.DevNonce++;
-                    device.info.FCnt = DEVICE_FCNT_DEFAULT + 1;
-                    Device.saveDevice(device.info);
-                }else
-                {
-                    SYSTEM_LOG_LN("JoinAccept failed");
-                }
+                continue;
             }
+            Device.loadDevice(device.info);
+            device.info.DevNonce--;
+            if(!Encoder.joinAccept(device, PHYPayload))
+            {
+                SYSTEM_LOG_LN("JoinAccept failed");
+                continue;
+            }
+            SYSTEM_LOG_LN("JoinAccept done");
+            device.info.DevNonce++;
+            device.info.FCnt = DEVICE_FCNT_DEFAULT + 1;
+            Device.saveDevice(device.info);
+            
         }else if(type == LORAWAN_CONFIRMED_DATA_DOWN || type == LORAWAN_UNCONFIRMED_DATA_DOWN)
         {
         
