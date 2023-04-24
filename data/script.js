@@ -64,7 +64,7 @@ function getDevices() {
               var txt = device[child.textContent]
               if(child.textContent == "DevAddr")
               {
-                txt = parseInt(device[child.textContent]).toString(16)
+                txt = parseInt(device[child.textContent]).toString(16).padStart(8, '0');
               }
               td.appendChild(document.createTextNode(txt));
               tr.appendChild(td);
