@@ -60,42 +60,43 @@ void GatewayClass::tLoop(void){
     Transceiver_data_t tData;
     Device_data_t device;
     BaseType_t status = pdFALSE;
-    while(true){
+    while(true)
+    {
         if(qTransceiverToGateway == NULL)
         {
             SYSTEM_PRINT_LN("Waiting for Queue TransceiverToGateway Init");
             delay(100);
+            continue;
+        }
+        status = xQueueReceive(qTransceiverToGateway, &tData, portMAX_DELAY);
+        if(status == pdFALSE)
+        {
+            SYSTEM_LOG_LN("qTransceiverToGateway reception failed");
+            continue;
+        }
+        SYSTEM_PRINT_LN("Device's data received successfully");
+        memcpy(device.info.DevEUI, tData.DevEUI, DEVICE_DEV_EUI_SIZE);
+        memcpy(device.payload, tData.payload, tData.payloadSize);
+        device.payloadSize = tData.payloadSize;
+        if(!Device.isDeviceConfigured(device.info))
+        {
+            // device not configured
+            SYSTEM_PRINT_LN("Device not configured");
+            continue;
+        }
+        Device.loadDevice(device.info);
+        if(device.info.FCnt == DEVICE_FCNT_DEFAULT || device.info.FCnt > DEVICE_FCNT_MAX)
+        {
+            // JoinRequest needed
+            this->joining(device);
         }else
         {
-            status = xQueueReceive(qTransceiverToGateway, &tData, portMAX_DELAY);
-            if(status == pdTRUE)
-            {
-                SYSTEM_PRINT_LN("Device's data received successfully");
-                memcpy(device.info.DevEUI, tData.DevEUI, DEVICE_DEV_EUI_SIZE);
-                memcpy(device.payload, tData.payload, tData.payloadSize);
-                device.payloadSize = tData.payloadSize;
-                if(!Device.isDeviceConfigured(device.info))
-                {
-                    // device not configured
-                    SYSTEM_PRINT_LN("Device not configured");
-                    continue;
-                }
-                Device.loadDevice(device.info);
-                if(device.info.FCnt == DEVICE_FCNT_DEFAULT || device.info.FCnt > DEVICE_FCNT_MAX)
-                {
-                    // JoinRequest needed
-                    this->joining(device);
-                }else
-                {
-                    // UnconfirmedDataUp needed
-                    this->dataUp(device);
-                }
-                
-            }else
-            {
-                SYSTEM_LOG_LN("qTransceiverToGateway reception failed");
-            }
+            // UnconfirmedDataUp needed
+            this->dataUp(device);
         }
+        
+    
+        
     }
 }
 
@@ -116,48 +117,45 @@ void GatewayClass::fLoop(void){
     Device_data_t device;
     BaseType_t status = pdFALSE;
     LoRaWAN_Packet_Type_t type;
-    while(true){
+    while(true)
+    {
         if(qForwarderToGateway == NULL)
         {
             SYSTEM_PRINT_LN("Waiting for Queue ForwarderToGateway Init");
             delay(100);
-        }else
+            continue;
+        }
+        status = xQueueReceive(qForwarderToGateway, &fData, portMAX_DELAY);
+        if(status == pdFALSE)
         {
-
-            status = xQueueReceive(qForwarderToGateway, &fData, portMAX_DELAY);
-        
+            continue;
+        }
+        JSONVar packet = JSON.parse(String(fData.packet, fData.packetSize));
+        String PHYPayload = (const char *)packet["txpk"]["data"];
+        type = Encoder.packetType(PHYPayload);
+        if(type == LORAWAN_JOIN_ACCEPT)
+        {
+            SYSTEM_LOG("JoinAccept PHYPayload : ");SYSTEM_PRINT_LN(PHYPayload);
+            status = xQueueReceive(qJGateway, device.info.DevEUI, portMAX_DELAY);
             if(status == pdTRUE)
             {
-                JSONVar packet = JSON.parse(String(fData.packet, fData.packetSize));
-                String PHYPayload = (const char *)packet["txpk"]["data"];
-                type = Encoder.packetType(PHYPayload);
-                if(type == LORAWAN_JOIN_ACCEPT)
+                Device.loadDevice(device.info);
+                device.info.DevNonce--;
+                if(Encoder.joinAccept(device, PHYPayload))
                 {
-                    SYSTEM_LOG("JoinAccept PHYPayload : ");SYSTEM_PRINT_LN(PHYPayload);
-                    status = xQueueReceive(qJGateway, device.info.DevEUI, portMAX_DELAY);
-                    if(status == pdTRUE)
-                    {
-                        Device.loadDevice(device.info);
-                        device.info.DevNonce--;
-                        if(Encoder.joinAccept(device, PHYPayload))
-                        {
-                            SYSTEM_LOG_LN("JoinAccept done");
-                            device.info.DevNonce++;
-                            device.info.FCnt = DEVICE_FCNT_DEFAULT + 1;
-                            Device.saveDevice(device.info);
-                        }else
-                        {
-                            SYSTEM_LOG_LN("JoinAccept failed");
-                        }
-                    }
-                }else if(type == LORAWAN_CONFIRMED_DATA_DOWN || type == LORAWAN_UNCONFIRMED_DATA_DOWN)
+                    SYSTEM_LOG_LN("JoinAccept done");
+                    device.info.DevNonce++;
+                    device.info.FCnt = DEVICE_FCNT_DEFAULT + 1;
+                    Device.saveDevice(device.info);
+                }else
                 {
-                
+                    SYSTEM_LOG_LN("JoinAccept failed");
                 }
-
             }
+        }else if(type == LORAWAN_CONFIRMED_DATA_DOWN || type == LORAWAN_UNCONFIRMED_DATA_DOWN)
+        {
+        
         }
-
     }
 }
 
@@ -166,17 +164,16 @@ void GatewayClass::fLoop(void){
 
 bool GatewayClass::forward(JSONVar & packet){
     // Send Packet to LoRaWAN Server
-    SYSTEM_LOG("Packet : ");SYSTEM_PRINT_LN(packet);
-    if(qGatewayToForwarder != NULL)
+    if(qGatewayToForwarder == NULL)
     {
-        Forwarder_data_t fData;
-        uint32_t packetSize = JSON.stringify(packet).length();
-        memcpy(fData.packet, JSON.stringify(packet).c_str(), packetSize);
-        fData.packetSize = packetSize;
-        xQueueSend(qGatewayToForwarder, &fData, portMAX_DELAY);
-        return true;
+        return false;
     }
-    return false;
+    Forwarder_data_t fData;
+    uint32_t packetSize = JSON.stringify(packet).length();
+    memcpy(fData.packet, JSON.stringify(packet).c_str(), packetSize);
+    fData.packetSize = packetSize;
+    xQueueSend(qGatewayToForwarder, &fData, portMAX_DELAY);
+    return true;
 }
 
 
@@ -222,7 +219,7 @@ bool GatewayClass::dataUp(Device_data_t & device, bool confirmed)
         status = Encoder.unconfirmedDataUp(device, packet);
     }else
     {
-        status = Encoder.unconfirmedDataUp(device, packet);
+        status = Encoder.confirmedDataUp(device, packet);
     }
 
     if(status)
@@ -263,6 +260,7 @@ void joinTaskEntry(void * parameter)
     JSONVar config;
     String content;
     SYSTEM_PRINT_LN("joinTaskEntry");
+    delay(5000);
     while(true)
     {
         if(Gateway.semaphore == NULL)
@@ -285,6 +283,7 @@ void joinTaskEntry(void * parameter)
                 }
                 SYSTEM_PRINTF_LN("Join number %d", i);
                 Gateway.joining(device);
+                delay(1000);
             }
         }
         xSemaphoreGive(Gateway.semaphore);

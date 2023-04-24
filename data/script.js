@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (xhr.status === 200) {
       var devices = JSON.parse(xhr.responseText);
       var tbody = document.querySelector("#device-table tbody");
+      var thead = document.querySelector("#device-table thead tr");
       tbody.innerHTML = "";
       devices.forEach(function(device) {
         var tr = document.createElement("tr");
@@ -52,13 +53,17 @@ document.addEventListener("DOMContentLoaded", function() {
         checkbox.setAttribute("value", device.DevEUI);
         checkboxTd.appendChild(checkbox);
         tr.appendChild(checkboxTd);
-        for (var prop in device) {
-          if (device.hasOwnProperty(prop)) {
-            var td = document.createElement("td");
-            td.appendChild(document.createTextNode(device[prop]));
-            tr.appendChild(td);
+        thead.childNodes.forEach(function(child)
+        {  
+          if(child.nodeName.toLowerCase() == "th" && child.textContent != "")
+          {
+            if (device.hasOwnProperty(child.textContent)) {
+              var td = document.createElement("td");
+              td.appendChild(document.createTextNode(device[child.textContent]));
+              tr.appendChild(td);
+            }
           }
-        }
+        })
         tbody.appendChild(tr);
       });
     } else {
@@ -86,16 +91,16 @@ function saveSettings() {
   var data = {
     id: id,
     host: host,
-    port: port,
-    lat: lat,
-    lon: lon,
-    alt: alt,
-    alive: alive,
-    stat: stat,
-    freq: freq,
-    bw: bw,
-    sf: sf,
-    cr: cr
+    port: parseInt(port),
+    lat: parseFloat(lat).toFixed(5),
+    lon: parseFloat(lon).toFixed(5),
+    alt: parseInt(alt),
+    alive: parseInt(alive),
+    stat: parseInt(stat),
+    freq: parseInt(freq),
+    bw: parseInt(bw),
+    sf: parseInt(sf),
+    cr: parseInt(cr)
   };
   fetch('/config/network', {
     method: 'POST',
@@ -104,6 +109,7 @@ function saveSettings() {
   .then(function(response) {
     if (response.status == 200) {
       alert('Settings saved successfully');
+      location.reload();
     } else {
       alert('Error saving settings');
     }
@@ -114,7 +120,7 @@ function saveSettings() {
 }
 window.onload = function() {
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/gateway.json');
+  xhr.open('GET', '/config/network');
   xhr.onload = function() {
     if (xhr.status === 200) {
       var data = JSON.parse(xhr.responseText);

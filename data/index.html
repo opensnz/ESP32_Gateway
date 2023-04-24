@@ -5,14 +5,21 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ESP32 Gateway</title>
+  <title>Gateway</title>
   <link href="bootstrap.min.css" rel="stylesheet">
   <script src="bootstrap.bundle.min.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      padding-top: 70px;
+    }
+    section {
+      padding : 50px;
+    }
+  </style>
 </head>
 <body>
   <header>
-    <nav class="navbar navbar-expand-sm bg-light fixed-top" style="padding: 0px 0px;">
+    <nav class="navbar navbar-expand-sm bg-primary fixed-top" style="padding: 0px 0px;">
       <div class="container-fluid justify-content-center">
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav mx-auto">
@@ -23,17 +30,17 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#system">
-                <button class="btn" onclick="menuOnClick('#system')">System</button>
+                <button class="btn text-white" onclick="menuOnClick('#system')">System</button>
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#network">
-                <button class="btn" onclick="menuOnClick('#network')">Network</button>
+                <button class="btn text-white" onclick="menuOnClick('#network')">Network</button>
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#device">
-                <button class="btn" onclick="menuOnClick('#device')">Device</button>
+                <button class="btn text-white" onclick="menuOnClick('#device')">Device</button>
               </a>
             </li>
           </ul>
@@ -56,7 +63,7 @@
                   <div class="d-flex flex-column justify-content-center align-items-center">
                     <div class="mt-5">
                       <div class="input-group mb-3">
-                        <span class="input-group-text">Frequency (KHz) : </span>
+                        <span class="input-group-text">Frequency (MHz) : </span>
                         <input type="text" class="form-control" id="flash-freq" value="" readonly>
                       </div>
                       <div class="input-group mb-3">
@@ -185,7 +192,7 @@
                 </div>
                 <div class="row">
                   <div class="col-md-12 text-end">
-                    <button id="savesettings" onclick="" class="btn btn-primary">Save</button>
+                    <button id="savesettings" onclick="saveSettings()" class="btn btn-primary">Save</button>
                   </div>
                 </div>
               </form>
@@ -310,11 +317,11 @@
                         <th>AppEUI</th>
                         <th>AppKey</th>
                         <th>DevNonce</th>
-                        <th>FPort</th>
                         <th>FCnt</th>
+                        <th>FPort</th>
+                        <th>DevAddr</th>
                         <th>NwkSKey</th>
                         <th>AppSKey</th>
-                        <th>DevAddr</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -328,6 +335,16 @@
       </div>
     </section>
   </main>
+  <footer class="bg-primary text-white py-3">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-auto">
+          <p class="mb-0">&copy;2023 <a href="https://www.opensnz-technology.com" class="text-white"
+              target="_blank">Opensnz Technology</a>. Tous droits réservés.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
   <script src="jquery.min.js"></script>
   <script type="text/javascript" src="script.js"></script>
 </body>

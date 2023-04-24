@@ -101,20 +101,20 @@ void ForwarderClass::loop(void){
         {
             SYSTEM_PRINT_LN("Waiting for Queue GatewayToForwarder Init");
             delay(100);
-        }else
-        {
-            status = xQueueReceive(qGatewayToForwarder, &fData, portMAX_DELAY);
-            if(status == pdTRUE)
-            {
-                uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
-                SYSTEM_PRINT_LN("\n##################################################");
-                SYSTEM_LOG("PUSH DATA : ");
-                this->handler.pushData(fData.packet, fData.packetSize, packet);
-                SYSTEM_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
-                SYSTEM_PRINT_LN("##################################################");
-                this->udp.writeTo(packet, PKT_MIN_SIZE + fData.packetSize, this->host, this->port);
-            }
+            continue;
         }
+        status = xQueueReceive(qGatewayToForwarder, &fData, portMAX_DELAY);
+        if(status == pdFALSE)
+        {
+            continue;
+        }
+        uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
+        SYSTEM_PRINT_LN("\n##################################################");
+        SYSTEM_LOG("PUSH DATA : ");
+        this->handler.pushData(fData.packet, fData.packetSize, packet);
+        SYSTEM_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
+        SYSTEM_PRINT_LN("##################################################");
+        this->udp.writeTo(packet, PKT_MIN_SIZE + fData.packetSize, this->host, this->port);  
     }
     
 }
