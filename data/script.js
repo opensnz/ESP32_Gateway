@@ -59,9 +59,14 @@ function getDevices() {
         {  
           if(child.nodeName.toLowerCase() == "th" && child.textContent != "")
           {
-            if (device.hasOwnProperty(child.textContent)) {
+            if(device.hasOwnProperty(child.textContent)) {
               var td = document.createElement("td");
-              td.appendChild(document.createTextNode(device[child.textContent]));
+              var txt = device[child.textContent]
+              if(child.textContent == "DevAddr")
+              {
+                txt = parseInt(device[child.textContent]).toString(16)
+              }
+              td.appendChild(document.createTextNode(txt));
               tr.appendChild(td);
             }
           }
@@ -134,7 +139,7 @@ function saveSettings() {
   })
   .then(function(response) {
     if (response.status == 200) {
-      alert('Settings saved successfully');
+      alert('LoRaWAN Settings saved successfully');
       location.reload();
     } else {
       alert('Error saving settings');
@@ -143,6 +148,21 @@ function saveSettings() {
   .catch(function(error) {
     alert('Error saving settings');
   });
+}
+function getWifi() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/config/wifi');
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var data = JSON.parse(xhr.responseText);
+      document.getElementById('id').value = data.ip;
+      document.getElementById('host').value = data.ssid;
+      document.getElementById('port').value = data.pass;
+    } else {
+      console.error('Error retrieving gateway data');
+    }
+  };
+  xhr.send();
 }
 function saveWifi(){
   fetch('/config/wifi', {
@@ -157,13 +177,15 @@ function saveWifi(){
   })
   .then(function(response){ 
     if(response.ok) {
-      alert("Config saved successfully.");
+      alert("Wifi Settings saved successfully.");
+      location.reload();
     } else {
-      alert("Error saving config.");
+      alert("Error saving settings");
     }
-  }
-  )
-  .catch(error => console.log('Error:', error)); 
+  })
+  .catch(function(error) {
+    alert('Error saving settings');
+  });
 }
 function addDevice() {
   console.log("add device");

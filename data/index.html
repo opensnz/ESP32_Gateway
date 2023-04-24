@@ -134,7 +134,7 @@
           <div class="card mb-3">
             <div class="card-header"><b>LoRaWAN Settings</b></div>
             <div class="card-body">
-              <form id="gateway-form">
+              <form id="gateway-form" method="post">
                 <div class="row">
                   <div class="col-sm-4">
                     <div class="mb-3">
@@ -204,13 +204,13 @@
           <div class="card mb-3">
             <div class="card-header"><b>WiFi Settings</b></div>
             <div class="card-body">
-              <form id="wifi-form">
+              <form id="wifi-form" method="post">
                 <div class="row">
                   <div class="col-md-4">
                     <div class="mb-3">
-                      <label for="espid" class="form-label">Gateway IP</label>
+                      <label for="ip" class="form-label">Gateway IP</label>
                       <div class="input-group border rounded">
-                        <input type="text" class="form-control border-0" id="espid" placeholder="ESP ID" name="espid">
+                        <input type="text" class="form-control border-0" id="ip" placeholder="192.168.1.1" name="ip">
                       </div>
                     </div>
                   </div>

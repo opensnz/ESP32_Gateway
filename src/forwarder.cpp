@@ -199,7 +199,6 @@ void periodicTaskEntry(void * parameter){
     while(true)
     {
         timestamp = RTC.getEpoch();
-        timeGMT = RTC.getTime("%Y-%m-%dT%H:%M:%SZ");
 
         if((timestamp - Forwarder.getHandler()->statTimestamp) >= Forwarder.getHandler()->statInterval)
         {
