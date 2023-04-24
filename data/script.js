@@ -1,19 +1,17 @@
-var selected = 0;
 document.addEventListener("DOMContentLoaded", function(){
-    home();
   getSystemInfo();
+  getSettings();
+  getDevices();
+  deleteDeviceEvent();
 });
-function home()
-{
-    console.log("home menu");
-}
-function device()
-{
-    console.log("device menu");
-}
-function network()
-{
-    console.log("network menu");
+function generateRandomString(inputId, length) {
+  var chars = '0123456789abcdef';
+  var result = '';
+  var input = document.getElementById(inputId);
+  for (var i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  input.value = result;
 }
 function menuOnClick(target) {
   const offsetTop = document.querySelector(target).offsetTop;
@@ -35,7 +33,7 @@ function getSystemInfo() {
     })
     .catch(error => console.error(error));
 }
-document.addEventListener("DOMContentLoaded", function() {
+function getDevices() {
   var xhr = new XMLHttpRequest();
   xhr.open("GET", "/device/all");
   xhr.onload = function() {
@@ -74,7 +72,31 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log("Error fetching devices:", xhr.statusText);
   };
   xhr.send();
-});
+}
+function getSettings() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/config/network');
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var data = JSON.parse(xhr.responseText);
+      document.getElementById('id').value = data.id;
+      document.getElementById('host').value = data.host;
+      document.getElementById('port').value = data.port;
+      document.getElementById('lat').value = data.lat;
+      document.getElementById('lon').value = data.lon;
+      document.getElementById('alt').value = data.alt;
+      document.getElementById('alive').value = data.alive;
+      document.getElementById('stat').value = data.stat;
+      document.getElementById('freq').value = data.freq;
+      document.getElementById('bw').value = data.bw;
+      document.getElementById('sf').value = data.sf;
+      document.getElementById('cr').value = data.cr;
+    } else {
+      console.error('Error retrieving gateway data');
+    }
+  };
+  xhr.send();
+}
 function saveSettings() {
   var id = document.getElementById("id").value;
   var host = document.getElementById("host").value;
@@ -118,41 +140,7 @@ function saveSettings() {
     alert('Error saving settings');
   });
 }
-window.onload = function() {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/config/network');
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var data = JSON.parse(xhr.responseText);
-      document.getElementById('id').value = data.id;
-      document.getElementById('host').value = data.host;
-      document.getElementById('port').value = data.port;
-      document.getElementById('lat').value = data.lat;
-      document.getElementById('lon').value = data.lon;
-      document.getElementById('alt').value = data.alt;
-      document.getElementById('alive').value = data.alive;
-      document.getElementById('stat').value = data.stat;
-      document.getElementById('freq').value = data.freq;
-      document.getElementById('bw').value = data.bw;
-      document.getElementById('sf').value = data.sf;
-      document.getElementById('cr').value = data.cr;
-    } else {
-      console.error('Error retrieving gateway data');
-    }
-  };
-  xhr.send();
-};
-function generateRandomString(inputId, length) {
-  var chars = '0123456789abcdef';
-  var result = '';
-  var input = document.getElementById(inputId);
-  for (var i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  input.value = result;
-}
-function saveWifi()
-{
+function saveWifi(){
   fetch('/config/wifi', {
     method: 'POST',
     headers: {
@@ -218,7 +206,7 @@ function addDevice() {
     alert("Error adding device.");
   });
 }
-document.addEventListener("DOMContentLoaded", function() {
+function deleteDeviceEvent() {
   document.getElementById("delete").addEventListener("click", function() {
     var checkboxes = document.querySelectorAll("input[type='checkbox'][name='device']:checked");
     if (checkboxes.length === 0) {
@@ -242,5 +230,5 @@ document.addEventListener("DOMContentLoaded", function() {
       xhr.send(JSON.stringify({ DevEUI: devEUI }));
     });
   });
-});
+}
 
