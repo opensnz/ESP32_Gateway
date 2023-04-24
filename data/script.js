@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function(){
   getSystemInfo();
-  getSettings();
+  getLoRaWANSettings();
+  getWiFiSettings();
   getDevices();
   deleteDeviceEvent();
 });
@@ -82,7 +83,7 @@ function getDevices() {
   };
   xhr.send();
 }
-function getSettings() {
+function getLoRaWANSettings() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '/config/network');
   xhr.onload = function() {
@@ -106,7 +107,7 @@ function getSettings() {
   };
   xhr.send();
 }
-function saveSettings() {
+function saveLoRaWANSettings() {
   var id = document.getElementById("id").value;
   var host = document.getElementById("host").value;
   var port = document.getElementById("port").value;
@@ -140,7 +141,6 @@ function saveSettings() {
   .then(function(response) {
     if (response.status == 200) {
       alert('LoRaWAN Settings saved successfully');
-      location.reload();
     } else {
       alert('Error saving settings');
     }
@@ -149,7 +149,7 @@ function saveSettings() {
     alert('Error saving settings');
   });
 }
-function getWifi() {
+function getWiFiSettings() {
   var xhr = new XMLHttpRequest();
   xhr.open('GET', '/config/wifi');
   xhr.onload = function() {
@@ -164,7 +164,7 @@ function getWifi() {
   };
   xhr.send();
 }
-function saveWifi(){
+function saveWiFiSettings(){
   fetch('/config/wifi', {
     method: 'POST',
     headers: {
@@ -178,7 +178,6 @@ function saveWifi(){
   .then(function(response){ 
     if(response.ok) {
       alert("Wifi Settings saved successfully.");
-      location.reload();
     } else {
       alert("Error saving settings");
     }
@@ -222,7 +221,7 @@ function addDevice() {
   .then(response => {
     if(response.ok) {
       alert("Device added successfully.");
-      location.reload();
+      //location.reload();
     } else {
       alert("Error adding device.");
     }
