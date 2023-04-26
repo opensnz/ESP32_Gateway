@@ -155,7 +155,7 @@ function getWiFiSettings() {
   xhr.onload = function() {
     if (xhr.status === 200) {
       var data = JSON.parse(xhr.responseText);
-      document.getElementById('id').value = data.ip;
+      document.getElementById('ip').value = data.ip;
       document.getElementById('ssid').value = data.ssid;
       document.getElementById('pass').value = data.pass;
     } else {
