@@ -93,7 +93,7 @@ void WebClass::connectToWiFi(void){
         SYSTEM_PRINT_LN(WiFi.localIP());
         WiFi.softAPdisconnect(true);
         Web.isWiFiGenerated = false;
-    }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+    }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
 
     WiFi.begin(SSID, PASS);
     SYSTEM_PRINT_LN("Connecting to WiFi...");

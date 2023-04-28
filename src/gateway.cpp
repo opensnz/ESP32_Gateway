@@ -257,7 +257,10 @@ void joinTaskEntry(void * parameter)
     JSONVar config;
     String content;
     SYSTEM_PRINT_LN("joinTaskEntry");
-    delay(5000);
+    while(WiFi.status() != WL_CONNECTED)
+    {
+        delay(1000);
+    }
     while(true)
     {
         if(Gateway.semaphore == NULL)
