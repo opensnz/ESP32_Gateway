@@ -49,10 +49,10 @@
 #define WEB_DEFAULT_SSID "OPENSNZ_GATEWAY"
 #define WEB_DEFAULT_PASS "opensnztech"
 
-#define WEB_WIFI_TIMEOUT 10000 // 10 seconds
-#define WEB_HTTP_OK                    200
-#define WEB_HTTP_BAD_REQUEST           400
-#define WEB_HTTP_INTERNAL_SERVER_ERROR 500
+#define WEB_HTTP_OK                     200
+#define WEB_HTTP_BAD_REQUEST            400
+#define WEB_HTTP_INTERNAL_SERVER_ERROR  500
+#define WEB_WIFI_RECONNECTION_FREQUENCY 10000 // reconnecting to AP every 10s when disconnected
 
 
 
@@ -61,14 +61,14 @@ class WebClass
 private:
     String ssid;
     String pass;
-    wifi_event_id_t disconnectedID;
 
     void initWeb(void);
-    void initWiFiAP(void);
-    void initWiFiSTA(void);
+    void generateWiFi(void);
+    void connectToWiFi(void);
     void serverGateway(void);
 
 public:
+    bool isWiFiGenerated = false;
     void begin(void);
     bool serverGetDevices(JSONVar & body);
     bool serverAddDevice(JSONVar & body);

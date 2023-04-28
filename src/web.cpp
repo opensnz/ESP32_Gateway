@@ -38,7 +38,6 @@ char SSID[64];
 char PASS[32];
 
 void WebClass::initWeb(void){
-
     if(!System.readFile(WEB_PATH_SSID, this->ssid))
     {
         // Can't read file
@@ -49,53 +48,55 @@ void WebClass::initWeb(void){
         // Can't read file
         this->pass = "";
     }
+    WiFi.mode(WIFI_MODE_STA);
 }
 
-void WebClass::initWiFiAP(void){
-    WiFi.mode(WIFI_MODE_AP);
-    SYSTEM_PRINT_LN("Setting AP (Access Point)");
+void WebClass::generateWiFi(void){
+    SYSTEM_PRINT("Generate WiFi AP with SSID : ");
+    SYSTEM_PRINT_LN(WEB_DEFAULT_SSID);
     if (!WiFi.softAPConfig(WEB_DEFAULT_IP, WEB_DEFAULT_GW, WEB_DEFAULT_SN)){
-        SYSTEM_PRINT_LN("AP Failed to configure");
+        SYSTEM_PRINT_LN("AP configuring failed");
+        return;
     }
     if(WiFi.softAP(WEB_DEFAULT_SSID, WEB_DEFAULT_PASS))
     {
-        SYSTEM_PRINT("AP IP address: ");SYSTEM_PRINT_LN(WiFi.softAPIP());
+        SYSTEM_PRINT("Web IP address: ");SYSTEM_PRINT_LN(WiFi.softAPIP());
+        this->isWiFiGenerated = true;
     }
 }
 
-void WebClass::initWiFiSTA(void){
-    WiFi.mode(WIFI_MODE_STA);
+void WebClass::connectToWiFi(void){
+
     memcpy(SSID, this->ssid.c_str(), this->ssid.length()+1);
     memcpy(PASS, this->pass.c_str(), this->pass.length()+1);
     SYSTEM_PRINT_LN(SSID);
     SYSTEM_PRINT_LN(PASS);
-    WiFi.begin(SSID, PASS);
-    SYSTEM_PRINT_LN("Connecting to WiFi...");
-
-    unsigned long currentMillis = millis();
-    unsigned long previousMillis = currentMillis;
-
-    while(WiFi.status() != WL_CONNECTED) {
-        currentMillis = millis();
-        if (currentMillis - previousMillis >= WEB_WIFI_TIMEOUT)
-        {
-            SYSTEM_PRINT_LN("WiFi failed to connect.");
-            WiFi.disconnect(true);
-            this->initWiFiAP();
-            return;
-        }
-        delay(100);
-    }
-    SYSTEM_PRINT_LN("WiFi connected.");
-    SYSTEM_PRINT_LN(WiFi.localIP());
 
     // Set disconnected event callback
-    Web.disconnectedID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
-        SYSTEM_PRINT("WiFi lost connection. Reason: ");
+    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        SYSTEM_PRINT("WiFi disconnected --> Reason : ");
         SYSTEM_PRINT_LN(info.wifi_sta_disconnected.reason);
-        WiFi.removeEvent(Web.disconnectedID);
-        Web.initWiFiSTA();
+        if(WiFi.status() != WL_CONNECTED)
+        {
+            WiFi.reconnect();
+        }
+        if(!Web.isWiFiGenerated)
+        {
+            Web.generateWiFi();
+        }
+        delay(WEB_WIFI_RECONNECTION_FREQUENCY);
     }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+    // Set connected event callback
+    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        SYSTEM_PRINT("WiFi connected --> Web IP : ");
+        SYSTEM_PRINT_LN(WiFi.localIP());
+        WiFi.softAPdisconnect(true);
+        Web.isWiFiGenerated = false;
+    }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+
+    WiFi.begin(SSID, PASS);
+    SYSTEM_PRINT_LN("Connecting to WiFi...");
 }
 
 void WebClass::begin(void){
@@ -103,10 +104,10 @@ void WebClass::begin(void){
     this->initWeb();
     
     if(this->ssid=="" || this->pass==""){
-        this->initWiFiAP();
+        this->generateWiFi();
     }else
     {
-        this->initWiFiSTA();
+        this->connectToWiFi();
     }
 
     this->serverGateway();
