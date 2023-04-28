@@ -283,7 +283,6 @@ void joinTaskEntry(void * parameter)
                 }
                 if(WiFi.status() != WL_CONNECTED)
                 {
-                    delay(1000);
                     continue;
                 }
                 Gateway.joining(device);

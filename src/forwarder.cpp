@@ -79,13 +79,15 @@ void ForwarderClass::setup(void){
     }
 
     if(udp.listen(IPAddress(0,0,0,0), this->port)) {
-        SYSTEM_LOG_LN("UDP connected");
+        SYSTEM_LOG("UDP listenning on port ");
+        SYSTEM_PRINT_LN(this->port);
         udp.onPacket([](AsyncUDPPacket packet) {
             SYSTEM_LOG_LN("UDP Packet Received Notification");
             Forwarder.handle(packet.data(), packet.length());
         });
     }else{
-        SYSTEM_LOG_LN("UDP not connected");
+        SYSTEM_LOG("UDP not listenning on port ");
+        SYSTEM_PRINT_LN(this->port);
     }
 
     xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  10000, NULL, 1, &periodicTaskHandler, 1);            
