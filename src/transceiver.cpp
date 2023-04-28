@@ -152,12 +152,13 @@ void onReceiveLoRaNotification(int packetSize){
 
 void printTransceiverData(Transceiver_data_t *tData)
 {
-    SYSTEM_PRINT_LN("\n################ Transceiver Data ################");
+    SYSTEM_PRINT_LN();
+    SYSTEM_PRINT_LN("################ Transceiver Data ################");
     SYSTEM_LOG ("DevEUI = ");
     for(int i=0; i<DEVICE_DEV_EUI_SIZE; i++){
         SYSTEM_PRINTF("%02X", tData->DevEUI[i]);
     }
-    SYSTEM_PRINT("\n");
+    SYSTEM_PRINT_LN();
     SYSTEM_LOGF_LN("RSSI   = %d", tData->rssi);
     SYSTEM_LOGF_LN("SNR    = %f", tData->snr);
     SYSTEM_LOGF_LN("SIZE   = %d", tData->payloadSize);
@@ -165,7 +166,8 @@ void printTransceiverData(Transceiver_data_t *tData)
     for(int i=0; i<tData->payloadSize; i++){
         SYSTEM_PRINTF("%02X", tData->payload[i]);
     }
-    SYSTEM_PRINT_LN("\n##################################################");
+    SYSTEM_PRINT_LN();
+    SYSTEM_PRINT_LN("##################################################");
 }
 
 
