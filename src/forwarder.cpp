@@ -111,7 +111,7 @@ void ForwarderClass::loop(void){
             continue;
         }
         uint8_t packet[PKT_MIN_SIZE + fData.packetSize];
-        SYSTEM_PRINT_LN("\n##################################################");
+        SYSTEM_PRINT_LN("##################################################");
         SYSTEM_LOG("PUSH DATA : ");
         this->handler.pushData(fData.packet, fData.packetSize, packet);
         SYSTEM_PRINT_LN(String(packet, PKT_MIN_SIZE + fData.packetSize));
@@ -198,6 +198,10 @@ void periodicTaskEntry(void * parameter){
     String timeGMT;
     uint32_t length;
     uint8_t packet[PKT_MAX_SIZE];
+    while(WiFi.status() != WL_CONNECTED)
+    {
+        delay(1000);
+    }
     while(true)
     {
         timestamp = RTC.getEpoch();
@@ -206,7 +210,10 @@ void periodicTaskEntry(void * parameter){
         {
             Forwarder.getHandler()->statTimestamp = (uint32_t)timestamp;
             length = Forwarder.getHandler()->pushStat(packet);
+            SYSTEM_PRINT_LN("##################################################");
+            SYSTEM_LOG("PKT_PUSH_DATA : ");
             SYSTEM_PRINT_LN(String(packet, length));
+            SYSTEM_PRINT_LN("##################################################");
             Forwarder.getUDP()->writeTo(packet, length, *(Forwarder.getHost()), Forwarder.getPort());
         }
         
@@ -220,7 +227,6 @@ void periodicTaskEntry(void * parameter){
         }
 
         SYSTEM_LOG_LN("PKT_PULL_DATA");
-        SYSTEM_LOG_LN(*Forwarder.getHost());
         Forwarder.getHandler()->pullData(packet);
         Forwarder.getUDP()->writeTo(packet, PKT_MIN_SIZE, *(Forwarder.getHost()), Forwarder.getPort());
         delay(Forwarder.getHandler()->aliveInterval * S_TO_MS_FACTOR);

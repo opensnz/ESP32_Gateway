@@ -152,7 +152,6 @@ void onReceiveLoRaNotification(int packetSize){
 
 void printTransceiverData(Transceiver_data_t *tData)
 {
-    SYSTEM_PRINT_LN();
     SYSTEM_PRINT_LN("################ Transceiver Data ################");
     SYSTEM_LOG ("DevEUI = ");
     for(int i=0; i<DEVICE_DEV_EUI_SIZE; i++){

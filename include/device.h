@@ -65,10 +65,17 @@ typedef struct device_info_t{
 #define DEVICE_FILE_DEVNONCE_POS   (DEVICE_FILE_INFO_SIZE - 4)
 #define DEVICE_FILE_FCNT_POS       (DEVICE_FILE_INFO_SIZE - 2)
 
+typedef struct device_metadata_t{
+    int rssi;
+    float snr;
+} __attribute__((packed)) Device_metadata_t;
+
+
 typedef struct device_data_t{
     uint8_t payload[DEVICE_PAYLOAD_MAX_SIZE];
     uint8_t payloadSize = DEVICE_PAYLOAD_MAX_SIZE;
     Device_info_t info;
+    Device_metadata_t metadata;
 } __attribute__((packed)) Device_data_t;
 
 class DeviceClass {

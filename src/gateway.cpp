@@ -78,6 +78,8 @@ void GatewayClass::tLoop(void){
         memcpy(device.info.DevEUI, tData.DevEUI, DEVICE_DEV_EUI_SIZE);
         memcpy(device.payload, tData.payload, tData.payloadSize);
         device.payloadSize = tData.payloadSize;
+        device.metadata.rssi = tData.rssi;
+        device.metadata.snr  = tData.snr;
         if(!Device.isDeviceConfigured(device.info))
         {
             SYSTEM_PRINT_LN("Device not configured");
@@ -210,6 +212,8 @@ bool GatewayClass::dataUp(Device_data_t & device, bool confirmed)
     packet["rxpk"][0]["time"] = RTC.getTime("%Y-%m-%dT%H:%M:%SZ");
     //packet["rxpk"][0]["tmms"] = (double)(timestamp - GATEWAY_GPS_START_TIMESTAMP) * 1000;
     packet["rxpk"][0]["tmst"] = (uint32_t)RTC.getEpoch();
+    packet["rxpk"][0]["rssi"] = device.metadata.rssi;
+    packet["rxpk"][0]["lsnr"] = device.metadata.snr;
 
     if(!confirmed)
     {
