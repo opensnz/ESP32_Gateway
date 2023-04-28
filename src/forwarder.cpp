@@ -82,7 +82,7 @@ void ForwarderClass::setup(void){
         SYSTEM_LOG("UDP listenning on port ");
         SYSTEM_PRINT_LN(this->port);
         udp.onPacket([](AsyncUDPPacket packet) {
-            SYSTEM_LOG_LN("UDP Packet Received Notification");
+            SYSTEM_LOG_LN("UDP Packet Receipt Notification");
             Forwarder.handle(packet.data(), packet.length());
         });
     }else{
