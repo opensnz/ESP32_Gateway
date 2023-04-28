@@ -278,7 +278,11 @@ void joinTaskEntry(void * parameter)
                 {
                     continue;
                 }
-                SYSTEM_PRINTF_LN("Join number %d", i);
+                if(WiFi.status() != WL_CONNECTED)
+                {
+                    delay(1000);
+                    continue;
+                }
                 Gateway.joining(device);
                 delay(1000);
             }

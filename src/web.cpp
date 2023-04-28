@@ -60,7 +60,7 @@ void WebClass::generateWiFi(void){
     }
     if(WiFi.softAP(WEB_DEFAULT_SSID, WEB_DEFAULT_PASS))
     {
-        SYSTEM_PRINT("Web IP address: ");SYSTEM_PRINT_LN(WiFi.softAPIP());
+        SYSTEM_PRINT("Web IP address : ");SYSTEM_PRINT_LN(WiFi.softAPIP());
         this->isWiFiGenerated = true;
     }
 }
