@@ -198,12 +198,14 @@ void periodicTaskEntry(void * parameter){
     String timeGMT;
     uint32_t length;
     uint8_t packet[PKT_MAX_SIZE];
-    while(WiFi.status() != WL_CONNECTED)
-    {
-        delay(1000);
-    }
+
     while(true)
     {
+        while(WiFi.status() != WL_CONNECTED)
+        {
+            delay(1000);
+        }
+        
         timestamp = RTC.getEpoch();
 
         if((timestamp - Forwarder.getHandler()->statTimestamp) >= Forwarder.getHandler()->statInterval)
