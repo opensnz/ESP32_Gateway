@@ -73,27 +73,26 @@ void TransceiverClass::loop(void){
         // read packet
         LoRa.read(); // NetID
         LoRa.read(); // MsgID
-        for (int i = 0; i < packetSize-4; i++) {
+        for (int i = 0; i < packetSize-3; i++) {
             payload[i] = (char)LoRa.read();
         }
-        LoRa.read(); // EndPayload
         LoRa.read(); // EndMsg
         SYSTEM_PRINT_LN(payload);
-        if(packetSize%4 != 0 || !this->isBase64(payload))
+        if(packetSize <= TRANSCEIVER_DEV_EUI_SIZE+3)
         {
             SYSTEM_PRINT_LN("Incorrect Frame");
             continue;
         }
-        tData.payloadSize = LoRaWAN_Base64_To_Binary(payload, packetSize-4, tData.payload, DEVICE_PAYLOAD_MAX_SIZE);
-        arrayToHexString(tData.payload, DEVICE_DEV_EUI_SIZE, path);
+        tData.payloadSize = packetSize-3;
+        memcpy(tData.DevEUI, payload, DEVICE_DEV_EUI_SIZE);
+        memcpy(tData.payload, &payload[DEVICE_DEV_EUI_SIZE], tData.payloadSize-DEVICE_DEV_EUI_SIZE);
+        arrayToHexString(tData.DevEUI, DEVICE_DEV_EUI_SIZE, path);
         path = String("/") + path + DEVICE_FILE_INFO_EXT;
         if(!System.exists(path))
         {
             SYSTEM_PRINT_LN("Device not configured");
             continue;
         }
-        memcpy(tData.DevEUI, tData.payload, DEVICE_DEV_EUI_SIZE);
-        memcpy(tData.payload, &tData.payload[DEVICE_DEV_EUI_SIZE], tData.payloadSize-DEVICE_DEV_EUI_SIZE);
         printTransceiverData(&tData);
         if(qTransceiverToGateway != NULL)
         {
