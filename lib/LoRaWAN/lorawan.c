@@ -200,8 +200,80 @@ uint8_t LoRaWAN_ConfirmedDataUp(MACPayload_t * packet, uint8_t* buffer, uint8_t 
 
 uint8_t LoRaWAN_DataDown(MACPayload_t * packet, uint8_t* buffer, uint8_t bufferSize)
 {
-    return 0;
+    uint8_t index;
+    lw_mic_t mic;        // calculated mic
+    lw_key_t lw_key;
+
+    // skip MHDR
+    index = 1; 
+
+    // get DevAddr since we need it for MIC check
+    uint32_t DevAddr = parseUInt32LittleEndian(&buffer[index]);
+    index += 4;
+    if(packet->FHDR.DevAddr != DevAddr) 
+    {
+        return 0;
+    }
+
+    if(bufferSize - 4 < index + 3)
+    {
+        return 0;
+    }
+    // MHDR(1) + DevAddr(4) + FCtrl(1) + FCnt(2) + FOpts(foptslen) + FPort(1)
+    uint8_t FCtrl = buffer[index];
+    index++;
+    packet->FHDR.FCnt16 = parseUInt16LittleEndian(&buffer[index]);
+    index += 2;
+    packet->FHDR.FCtrl.downlink.ADR = FCtrl >> 7;
+    packet->FHDR.FCtrl.downlink.ACK = (FCtrl & (0x01 << 5)) >> 5;
+    packet->FHDR.FCtrl.downlink.FPending = (FCtrl & (0x01 << 4)) >> 4;
+    packet->FHDR.FCtrl.downlink.FOptsLen = (FCtrl & 0x0F);
+    
+    lw_key.in = buffer;
+    lw_key.len = bufferSize - 4;
+    lw_key.devaddr.data = packet->FHDR.DevAddr;
+    lw_key.fcnt32 = packet->FHDR.FCnt16;
+    lw_key.link = LW_DOWNLINK;
+    // calculate & compare mic
+    uint32_t receivedMIC = parseUInt32LittleEndian(&buffer[bufferSize - 4]);
+    lw_key.AESkey = packet->NwkSKey;
+    lw_msg_mic(&mic, &lw_key);
+    if(mic.data != receivedMIC)
+    {
+        return 0;
+    }
+
+    if(bufferSize - 4 < index + packet->FHDR.FCtrl.downlink.FOptsLen + 1)
+    {
+        // No FPort
+        packet->FPort = 0;
+        return 0;
+    }
+    memcpy(packet->FHDR.FOpts, &buffer[index], packet->FHDR.FCtrl.downlink.FOptsLen);
+    index += packet->FHDR.FCtrl.downlink.FOptsLen;
+    packet->FPort = buffer[index];
+    index++;
+    if(bufferSize - 4 < index + 1)
+    {
+        // No Payload
+        packet->payloadSize = 0;
+        return 0;
+    }
+    packet->payloadSize = bufferSize - 4 - index;
+
+    lw_key.AESkey = packet->AppSKey;
+    lw_key.in = &buffer[index];
+    lw_key.len = packet->payloadSize;
+
+    // decrypt by encrypt
+    if(lw_encrypt(packet->payload, &lw_key) <= 0)
+    {
+        return 0;
+    }
+
+    return packet->payloadSize;
 }
+
 
 uint32_t LoRaWAN_Base64_To_Binary(const char * in, int size, uint8_t * out, int max_len)
 {
