@@ -100,8 +100,8 @@ typedef struct {
 
 // part of LoRaWAN_Packet_t (union)
 typedef struct {
-    uint8_t AppEUI[8]; 
     uint8_t DevEUI[8];
+    uint8_t AppEUI[8]; 
     uint8_t AppKey[16];
     uint16_t DevNonce; 
 } JoinRequest_t;
