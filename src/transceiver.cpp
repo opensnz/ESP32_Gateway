@@ -32,7 +32,21 @@
 
 QueueHandle_t qTransceiverToGateway = NULL;
 TaskHandle_t  hTransceiver = NULL;
-TransceiverClass Transceiver = TransceiverClass(LORA_FREQUENCY_DEFAULT);
+TransceiverClass Transceiver = TransceiverClass();
+
+bool TransceiverClass::loadConfig(void){
+    String content;
+    JSONVar config;
+    if(System.readFile(TRANSCEIVER_GATEWAY_FILE, content))
+    {
+        config = JSON.parse(content);
+        this->freq = (uint32_t)config["freq"];
+        this->bw = (uint32_t)config["bw"];
+        this->sf = (uint32_t)config["sf"];
+        return true;
+    }
+    return false;
+}
 
 void TransceiverClass::setup(void){
     vTaskPrioritySet(hTransceiver, TASK_PRIORITY+1);
@@ -40,13 +54,22 @@ void TransceiverClass::setup(void){
     if (qTransceiverToGateway == NULL){
         SYSTEM_LOGF("Failed to create queue= %p\n", qTransceiverToGateway);
     }
-
-    LoRa.setPins(LORA_CS_PIN, LORA_RESET_PIN, LORA_IRQ_PIN);
-    if (!LoRa.begin(LORA_FREQUENCY_DEFAULT)) {
-        SYSTEM_LOG("Starting LoRa failed!");
-        while(1);
+    while(!this->loadConfig())
+    {
+        SYSTEM_LOGF_LN("Loading Config Info failed");
+        delay(100);
     }
+    LoRa.setPins(LORA_CS_PIN, LORA_RESET_PIN, LORA_IRQ_PIN);
+
+    while(!LoRa.begin(this->freq))
+    {
+        SYSTEM_LOG("Starting LoRa failed!");
+        delay(100);
+    }
+    LoRa.setSignalBandwidth(this->bw);
+    LoRa.setSpreadingFactor(this->sf);
     LoRa.onReceive(onReceiveLoRaNotification);
+    // Put Transceiver to receive mode
     LoRa.receive();
 }
 
@@ -62,28 +85,38 @@ void TransceiverClass::loop(void){
                         ULONG_MAX,       /* Reset the notification value to 0 on exit. */
                         &packetSize,     /* Notified value pass out in packetSize. */
                         portMAX_DELAY ); /* Block indefinitely. */
-        if(packetSize <= DEVICE_DEV_EUI_SIZE + 4)
-        {
-            continue;
-        }
-        tData.rssi = LoRa.packetRssi();
-        tData.snr = LoRa.packetSnr();
-        char payload[packetSize];
-        memset(payload, 0x00, packetSize);
-        // read packet
-        LoRa.read(); // NetID
-        LoRa.read(); // MsgID
-        for (int i = 0; i < packetSize-3; i++) {
-            payload[i] = (char)LoRa.read();
-        }
-        LoRa.read(); // EndMsg
-        SYSTEM_PRINT_LN(payload);
-        if(packetSize <= TRANSCEIVER_DEV_EUI_SIZE+3)
+#if TRANSCEIVER_DORJI_FRAME_FORMAT
+        if(packetSize <= DEVICE_DEV_EUI_SIZE + TRANSCEIVER_DORJI_FRAME_MIN_SIZE)
         {
             SYSTEM_PRINT_LN("Incorrect Frame");
             continue;
         }
-        tData.payloadSize = packetSize-3;
+#else
+        if(packetSize <= DEVICE_DEV_EUI_SIZE)
+        {
+            SYSTEM_PRINT_LN("Incorrect Frame");
+            continue;
+        }
+#endif
+        tData.rssi = LoRa.packetRssi();
+        tData.snr = LoRa.packetSnr();
+        char payload[packetSize];
+        memset(payload, 0x00, packetSize);
+#if TRANSCEIVER_DORJI_FRAME_FORMAT
+        tData.payloadSize = packetSize-TRANSCEIVER_DORJI_FRAME_MIN_SIZE;
+        LoRa.read(); // NetID
+        LoRa.read(); // MsgID
+        for (int i = 0; i < tData.payloadSize; i++) {
+            payload[i] = (char)LoRa.read();
+        }
+        LoRa.read(); // EndMsg
+#else
+        tData.payloadSize = packetSize;
+        for (int i = 0; i < tData.payloadSize; i++) {
+            payload[i] = (char)LoRa.read();
+        }
+#endif
+        SYSTEM_PRINT_LN(payload);
         memcpy(tData.DevEUI, payload, DEVICE_DEV_EUI_SIZE);
         memcpy(tData.payload, &payload[DEVICE_DEV_EUI_SIZE], tData.payloadSize-DEVICE_DEV_EUI_SIZE);
         arrayToHexString(tData.DevEUI, DEVICE_DEV_EUI_SIZE, path);
@@ -101,8 +134,43 @@ void TransceiverClass::loop(void){
     }
 }
 
-TransceiverClass::TransceiverClass(uint32_t freq){
-    this->freq = freq;
+int TransceiverClass::sum(String message)
+{
+    int response = 0;
+    uint8_t length = message.length();
+    for (uint8_t i = 0; i < length; i++)
+    {
+        response += (uint8_t)message[i];
+    }
+    return response;
+}
+
+int TransceiverClass::normalize(int sum)
+{
+    if (sum > 288)
+    {
+        do
+        {
+            sum = sum - 256;
+        } while (sum > 288);
+    }
+    return sum;
+}
+
+uint8_t TransceiverClass::getMessageID(String & message)
+{
+    int normalizedSum = this->normalize(this->sum(message));
+    if (normalizedSum <= 32)
+    {
+        return (32 - normalizedSum);
+    }
+    else
+    {
+        return (288 - normalizedSum);
+    }
+}
+
+TransceiverClass::TransceiverClass(){
 }
 void TransceiverClass::main(void){
     SYSTEM_PRINT_LN("Transceiver setting...");
@@ -111,33 +179,23 @@ void TransceiverClass::main(void){
     this->loop();
 }
 
-bool TransceiverClass::isBase64(const char * data)
-{
-    uint8_t i = 0;
-    while(data[i] != '\0')
-    {
-        if(data[i] >= '0' && data[i] <= '9')
-        {
-            // 0 - 9
-        }else if(data[i] >= 'A' && data[i] <= 'Z')
-        {
-            // A - Z
-        }
-        else if(data[i] >= 'a' && data[i] <= 'z')
-        {
-            // a - z
-        }
-        else if(data[i] == '/' || data[i] == '=' || data[i] == '+')
-        {
-            // Special characters 
-        }
-        else
-        {
-            return false;
-        }
-        i++;
-    }
-    return true;
+void TransceiverClass::transmit(Device_data_t & device){
+    LoRa.beginPacket();
+#if TRANSCEIVER_DORJI_FRAME_FORMAT
+    LoRa.write(TRANSCEIVER_DORJI_FRAME_NET_ID);
+    LoRa.write(device.info.DevEUI, DEVICE_DEV_EUI_SIZE);
+    LoRa.write(device.payload, device.payloadSize);
+    String message = String(device.info.DevEUI, DEVICE_DEV_EUI_SIZE) + 
+                     String(device.payload, device.payloadSize);
+    uint8_t messageID = this->getMessageID(message);
+    LoRa.write(messageID);
+#else
+    LoRa.write(device.info.DevEUI, DEVICE_DEV_EUI_SIZE);
+    LoRa.write(device.payload, device.payloadSize);
+#endif
+    LoRa.endPacket();
+    // Put Transceiver to receive mode
+    LoRa.receive();
 }
 
 

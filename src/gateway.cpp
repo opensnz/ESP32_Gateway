@@ -153,7 +153,16 @@ void GatewayClass::fLoop(void){
             
         }else if(type == LORAWAN_CONFIRMED_DATA_DOWN || type == LORAWAN_UNCONFIRMED_DATA_DOWN)
         {
-        
+            if(!Encoder.dataDown(device, PHYPayload))
+            {
+                SYSTEM_LOG_LN("DataDown failed");
+                continue;
+            }
+            if(device.payloadSize > 0)
+            {
+                Transceiver.transmit(device);
+                SYSTEM_LOG_LN("DataDown done");
+            }
         }
     }
 }

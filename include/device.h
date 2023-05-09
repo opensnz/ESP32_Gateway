@@ -88,6 +88,7 @@ public:
     bool saveDevice(Device_info_t & info);
     bool saveFCnt(Device_info_t & info);
     bool saveDevNonce(Device_info_t & info);
+    bool getDeviceByDevAddr(Device_info_t & info);
 };
 
 

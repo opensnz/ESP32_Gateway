@@ -145,8 +145,6 @@ typedef union {
 } LoRaWAN_Packet_t;
 
 
-extern LoRaWAN_Packet_t LoRaWAN;
-extern char Base64Buffer[300];
 
 MHDR_MType_t LoRaWAN_MessageType(uint8_t* buffer, uint8_t bufferSize);
 uint8_t LoRaWAN_JoinRequest(JoinRequest_t * packet, uint8_t* buffer, uint8_t bufferSize);

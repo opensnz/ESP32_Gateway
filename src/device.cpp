@@ -140,6 +140,34 @@ bool DeviceClass::saveDevNonce(Device_info_t & info)
 }
 
 
+bool DeviceClass::getDeviceByDevAddr(Device_info_t & info)
+{
+    uint32_t DevAddr = info.DevAddr;
+    String path = DEVICE_FILE_CONFIG;
+    JSONVar config;
+    String content;
+    if(!System.readFile(path, content))
+    {
+        return false;
+    }
+    config = JSON.parse(content);
+    uint8_t length = (uint8_t)config.length();
+    uint8_t count = 0;
+    for(uint8_t i=0; i<length; i++)
+    {
+        path = String("/") + (const char *)config[i] + DEVICE_FILE_INFO_EXT;
+        if(!System.readFile(path, (uint8_t *)(&info), DEVICE_FILE_INFO_SIZE))
+        {
+            continue;
+        }
+        if(DevAddr == info.DevAddr)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 
 /********************* Global Function Implementations **********************/

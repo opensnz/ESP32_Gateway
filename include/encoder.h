@@ -57,9 +57,8 @@ public:
     bool joinRequest(Device_data_t & device, JSONVar & packet);
     bool joinAccept(Device_data_t & device, String PHYPayload);
     bool unconfirmedDataUp(Device_data_t & device, JSONVar & packet);
-    bool unconfirmedDataDown(Device_data_t & device, JSONVar & packet);
     bool confirmedDataUp(Device_data_t & device, JSONVar & packet);
-    bool confirmedDataDown(Device_data_t & device, JSONVar & packet);
+    bool dataDown(Device_data_t & device, String PHYPayload);
 };
 
 

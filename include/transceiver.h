@@ -40,16 +40,21 @@
 #define bitSet(value, bit)                  ((value) |= (1UL << (bit)))
 #define bitClear(value, bit)                ((value) &= ~(1UL << (bit)))
 #define bitWrite(value, bit, bitvalue)      ((bitvalue) ? bitSet(value, bit) : \
-                                            			  bitClear(value, bit))
+                                                    bitClear(value, bit))
 
-#define LORA_FREQUENCY_DEFAULT  868E6        	  // LoRa default RF frequency
+#define LORA_FREQUENCY_DEFAULT  868E6        	    // LoRa default RF frequency
 #define LORA_CS_PIN             GPIO_NUM_18       // LoRa radio chip select
 #define LORA_RESET_PIN          GPIO_NUM_14       // LoRa radio reset
 #define LORA_IRQ_PIN            GPIO_NUM_26       // change for your board; must be a hardware interrupt pin
 
 #define TRANSCEIVER_QUEUE_SIZE        DEVICE_TOTAL
-#define TRANSCEIVER_DEV_EUI_SIZE      8
 #define TRANSCEIVER_PAYLOAD_MAX_SIZE  256
+
+#define TRANSCEIVER_DORJI_FRAME_FORMAT       0    // 1 : enable dorji frame format, 0 : disable it
+#define TRANSCEIVER_DORJI_FRAME_NET_ID       0x06 // default net ID for dorji frame format
+#define TRANSCEIVER_DORJI_FRAME_MIN_SIZE     3    // 3 bytes (NetID + MsgID + EndMsg)  
+
+#define TRANSCEIVER_GATEWAY_FILE             "/gateway.json"
 
 typedef struct transceiver_data_t{
     uint8_t DevEUI[DEVICE_DEV_EUI_SIZE];
@@ -62,16 +67,21 @@ typedef struct transceiver_data_t{
  
 class TransceiverClass {
 private:
-	uint32_t freq;
-	
-	void setup(void);
-	void loop(void);
-	bool isBase64(const char * data);
+    uint32_t freq;
+    uint32_t bw;
+    uint32_t sf;
     
+    void setup(void);
+    void loop(void);
+    bool loadConfig(void);
+    int sum(String message);
+    int normalize(int sum);
+    uint8_t getMessageID(String & message);  
 
 public:
-	TransceiverClass(uint32_t freq);
-	void main(void);
+    TransceiverClass();
+    void main(void);
+    void transmit(Device_data_t & device);
 };
 
 

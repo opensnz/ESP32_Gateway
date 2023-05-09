@@ -33,8 +33,8 @@
 
 
 EncoderClass Encoder;
+LoRaWAN_Packet_t LoRaWAN;
 char EncoderB64Buffer[ENCODER_BASE64_BUFFER_MAX_SIZE];
-
 
 
 EncoderClass::EncoderClass(){
@@ -108,15 +108,32 @@ bool EncoderClass::unconfirmedDataUp(Device_data_t & device, JSONVar & packet){
     return false;
 }
 
-bool EncoderClass::unconfirmedDataDown(Device_data_t & device, JSONVar & packet){
-    return false;
-}
-
 bool EncoderClass::confirmedDataUp(Device_data_t & device, JSONVar & packet){
     return false;
 }
 
-bool EncoderClass::confirmedDataDown(Device_data_t & device, JSONVar & packet){
+bool EncoderClass::dataDown(Device_data_t & device, String PHYPayload){
+    device.payloadSize = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
+                                                    device.payload, DEVICE_PAYLOAD_MAX_SIZE);
+    device.info.DevAddr = parseUInt32LittleEndian(&device.payload[1]);
+    if(!Device.getDeviceByDevAddr(device.info))
+    {
+        return false;
+    }
+    LoRaWAN.MACPayload.FHDR.DevAddr = device.info.DevAddr;
+    memcpy(LoRaWAN.MACPayload.NwkSKey, device.info.NwkSKey, DEVICE_NWK_SKEY_SIZE);
+    memcpy(LoRaWAN.MACPayload.AppSKey, device.info.AppSKey, DEVICE_APP_SKEY_SIZE);
+    bool status = LoRaWAN_DataDown(&LoRaWAN.MACPayload, device.payload, device.payloadSize);
+    device.payloadSize = 0;
+    if(status)
+    {
+        device.payloadSize = LoRaWAN.MACPayload.payloadSize;
+        if(device.payloadSize > 0)
+        {
+            memcpy(device.payload, LoRaWAN.MACPayload.payload, device.payloadSize);
+            return true;
+        }
+    }
     return false;
 }
 
