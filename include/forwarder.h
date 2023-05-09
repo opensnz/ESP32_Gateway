@@ -35,6 +35,7 @@
 #include "device.h"
 #include "log.h"
 
+#define halfWord(hi, lo)                    ((hi << 8) | lo)
 
 // Constants for Semtech UDP protocol
 #define PROTOCOL_VERSION  0x02
