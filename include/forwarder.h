@@ -35,12 +35,6 @@
 #include "device.h"
 #include "log.h"
 
-#define halfWord(hi, lo)                    ((hi << 8) | lo)
-#define bitRead(value, bit)                 (((value) >> (bit)) & 0x01)
-#define bitSet(value, bit)                  ((value) |= (1UL << (bit)))
-#define bitClear(value, bit)                ((value) &= ~(1UL << (bit)))
-#define bitWrite(value, bit, bitvalue)      ((bitvalue) ? bitSet(value, bit) : \
-                                                          bitClear(value, bit))
 
 // Constants for Semtech UDP protocol
 #define PROTOCOL_VERSION  0x02

@@ -35,14 +35,7 @@
 #include "device.h"
 #include "log.h"
 
-#define halfWord(hi, lo)                    ((hi << 8) | lo)
-#define bitRead(value, bit)                 (((value) >> (bit)) & 0x01)
-#define bitSet(value, bit)                  ((value) |= (1UL << (bit)))
-#define bitClear(value, bit)                ((value) &= ~(1UL << (bit)))
-#define bitWrite(value, bit, bitvalue)      ((bitvalue) ? bitSet(value, bit) : \
-                                                    bitClear(value, bit))
 
-#define LORA_FREQUENCY_DEFAULT  868E6        	    // LoRa default RF frequency
 #define LORA_CS_PIN             GPIO_NUM_18       // LoRa radio chip select
 #define LORA_RESET_PIN          GPIO_NUM_14       // LoRa radio reset
 #define LORA_IRQ_PIN            GPIO_NUM_26       // change for your board; must be a hardware interrupt pin
