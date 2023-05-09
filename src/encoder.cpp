@@ -41,6 +41,10 @@ EncoderClass::EncoderClass(){
 
 }
 
+uint32_t EncoderClass::parseUInt32LittleEndian(const uint8_t *bytes) {
+    return (((uint32_t) bytes[0]) << 0u) | (((uint32_t) bytes[1]) << 8u) | (((uint32_t) bytes[2]) << 16u) | (((uint32_t) bytes[3]) << 24u);
+}
+
 LoRaWAN_Packet_Type_t EncoderClass::packetType(String PHYPayload)
 {
 
@@ -115,7 +119,7 @@ bool EncoderClass::confirmedDataUp(Device_data_t & device, JSONVar & packet){
 bool EncoderClass::dataDown(Device_data_t & device, String PHYPayload){
     device.payloadSize = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
                                                     device.payload, DEVICE_PAYLOAD_MAX_SIZE);
-    device.info.DevAddr = parseUInt32LittleEndian(&device.payload[1]);
+    device.info.DevAddr = this->parseUInt32LittleEndian(&device.payload[1]);
     if(!Device.getDeviceByDevAddr(device.info))
     {
         return false;

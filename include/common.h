@@ -45,8 +45,6 @@ void timeAdjustmentNotification(struct timeval *t);
 
 void genericPacket(JSONVar & packet);
 
-uint32_t parseUInt32LittleEndian(const uint8_t *bytes);
-
 extern ESP32Time RTC;
 
 #endif /* __COMMON_H__ */

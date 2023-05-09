@@ -81,9 +81,6 @@ void genericPacket(JSONVar & packet){
 }
 
 
-uint32_t parseUInt32LittleEndian(const uint8_t *bytes) {
-    return (((uint32_t) bytes[0]) << 0u) | (((uint32_t) bytes[1]) << 8u) | (((uint32_t) bytes[2]) << 16u) | (((uint32_t) bytes[3]) << 24u);
-}
 
 
 /*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/

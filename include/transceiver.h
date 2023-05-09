@@ -50,7 +50,7 @@
 #define TRANSCEIVER_QUEUE_SIZE        DEVICE_TOTAL
 #define TRANSCEIVER_PAYLOAD_MAX_SIZE  256
 
-#define TRANSCEIVER_DORJI_FRAME_FORMAT       0    // 1 : enable dorji frame format, 0 : disable it
+#define TRANSCEIVER_DORJI_FRAME_FORMAT       1    // 1 : enable dorji frame format, 0 : disable it
 #define TRANSCEIVER_DORJI_FRAME_NET_ID       0x06 // default net ID for dorji frame format
 #define TRANSCEIVER_DORJI_FRAME_MIN_SIZE     3    // 3 bytes (NetID + MsgID + EndMsg)  
 

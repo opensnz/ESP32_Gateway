@@ -50,6 +50,7 @@ typedef enum {
 class EncoderClass {
 
 private:
+  uint32_t parseUInt32LittleEndian(const uint8_t *bytes);
 
 public:
     EncoderClass();
