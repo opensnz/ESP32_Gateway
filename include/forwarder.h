@@ -48,7 +48,7 @@
 #define PKT_TX_ACK        0x05
 
 #define PKT_MAX_SIZE            1024
-#define PKT_TX_ACK_DATA_SIZE    27
+#define PKT_TX_ACK_DATA_SIZE    29
 #define PKT_PULL_DATA_FREQUENCY 30 // every 30 seconds
 
 #define FORWARDER_GATEWAY_EUI_SIZE        8

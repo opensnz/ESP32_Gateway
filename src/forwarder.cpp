@@ -330,7 +330,7 @@ uint16_t Handler::pullResp(const uint8_t *data){
 }
 
 uint32_t Handler::txAck(uint16_t tokenZ, uint8_t *packet){
-    char data[] =  "{\"txpk_ack\":{\"error\":NONE}}";
+    char data[] =  "{\"txpk_ack\":{\"error\":\"NONE\"}}";
     this->pktTxNb++;
     packet[0] = PROTOCOL_VERSION;
     packet[1] = highByte(tokenZ);
