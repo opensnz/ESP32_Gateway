@@ -158,10 +158,13 @@ void GatewayClass::fLoop(void){
                 SYSTEM_LOG_LN("DataDown failed");
                 continue;
             }
+            SYSTEM_LOG_LN("DataDown done");
             if(device.payloadSize > 0)
             {
                 Transceiver.transmit(device);
-                SYSTEM_LOG_LN("DataDown done");
+            }else
+            {
+                SYSTEM_LOG_LN("No data to transmit");
             }
         }
     }

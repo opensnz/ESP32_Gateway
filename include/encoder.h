@@ -51,6 +51,8 @@ class EncoderClass {
 
 private:
   uint32_t parseUInt32LittleEndian(const uint8_t *bytes);
+  void upStream(Device_data_t & device);
+  void downStream(Device_data_t & device);
 
 public:
     EncoderClass();
