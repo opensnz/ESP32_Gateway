@@ -166,6 +166,9 @@ void GatewayClass::fLoop(void){
             {
                 SYSTEM_LOG_LN("No data to transmit");
             }
+        }else
+        {
+            SYSTEM_LOG_LN("Unrecognized downlink data type");
         }
     }
 }

@@ -53,7 +53,7 @@ void EncoderClass::upStream(Device_data_t & device){
     UpStream.MACPayload.FHDR.FCnt16 = device.info.FCnt;
     UpStream.MACPayload.FHDR.DevAddr = device.info.DevAddr;
     UpStream.MACPayload.FHDR.FCtrl.uplink.ACK = true;
-    UpStream.MACPayload.FHDR.FCtrl.uplink.ADR = true;
+    UpStream.MACPayload.FHDR.FCtrl.uplink.ADR = false;
     UpStream.MACPayload.FHDR.FCtrl.uplink.FOptsLen = 0;
     UpStream.MACPayload.FHDR.FCtrl.uplink.ClassB = false;
     UpStream.MACPayload.FHDR.FCtrl.uplink.ADRACKReq = false;
@@ -71,7 +71,7 @@ void EncoderClass::downStream(Device_data_t & device){
     DownStream.MACPayload.FHDR.FCtrl.downlink.ADR = false;
     DownStream.MACPayload.FHDR.FCtrl.downlink.FOptsLen = 0;
     DownStream.MACPayload.FHDR.FCtrl.downlink.FPending = false;
-    DownStream.MACPayload.payloadSize = 0;
+    UpStream.MACPayload.payloadSize = 0;
     memcpy(DownStream.MACPayload.NwkSKey, device.info.NwkSKey, DEVICE_NWK_SKEY_SIZE);
     memcpy(DownStream.MACPayload.AppSKey, device.info.AppSKey, DEVICE_APP_SKEY_SIZE);
 }
@@ -86,7 +86,7 @@ LoRaWAN_Packet_Type_t EncoderClass::packetType(String PHYPayload)
         // error
         return LoRaWAN_Packet_Type_t::LORAWAN_PROPRIETARY;
     }
-    MHDR_MType_t type = LoRaWAN_MessageType((uint8_t*)EncoderB64Buffer, size);
+    MHDR_MType_t type = LoRaWAN_MessageType(DownStream.MACPayload.payload, size);
     return (LoRaWAN_Packet_Type_t)(type);
 }
 
@@ -174,13 +174,13 @@ bool EncoderClass::confirmedDataUp(Device_data_t & device, JSONVar & packet){
 
 bool EncoderClass::dataDown(Device_data_t & device, String PHYPayload){
     
-    uint32_t size = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
-                                            DownStream.MACPayload.payload, LORAWAN_MAX_PAYLOAD_LEN);
-    if(size == 0)
+    device.payloadSize = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
+                                                    device.payload, DEVICE_PAYLOAD_MAX_SIZE);
+    if(device.payloadSize == 0)
     {
         return false;
     }
-    device.info.DevAddr = this->parseUInt32LittleEndian(&DownStream.MACPayload.payload[1]);
+    device.info.DevAddr = this->parseUInt32LittleEndian(&device.payload[1]);
     if(!Device.getDeviceByDevAddr(device.info))
     {
         return false;
