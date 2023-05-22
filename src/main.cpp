@@ -32,6 +32,7 @@
 #include "gateway.h"
 #include "transceiver.h"
 #include "forwarder.h"
+#include "rgb.h"
 
 void setup() {
     while(!System.begin())
@@ -40,13 +41,17 @@ void setup() {
         delay(10);
     }
     // System started fine
+    
+    // Launch RGB Led Task
+    xTaskCreatePinnedToCore(RGBTaskEntry, "RGBTask", 10000, NULL, TASK_PRIORITY, &hRGB, 1);
+
     // Start Web Server
     Web.begin();
     delay(100);
 
     // Start other Tasks
 
-    xTaskCreatePinnedToCore(ForwarderTaskEntry,   "forwarderTask",    10000, NULL, TASK_PRIORITY, &hForwarder, 1);
+    xTaskCreatePinnedToCore(ForwarderTaskEntry, "forwarderTask", 10000, NULL, TASK_PRIORITY, &hForwarder, 1);
     delay(100);           
     xTaskCreatePinnedToCore(FGatewayTaskEntry, "fGatewayTask", 10000, NULL, TASK_PRIORITY, &hFGateway, 1);
     delay(100);
@@ -86,5 +91,10 @@ void ForwarderTaskEntry(void * parameter){
     Forwarder.main();
 }
 
+void RGBTaskEntry(void * parameter)
+{
+    SYSTEM_PRINT_LN("RGBTaskEntry");
+    RGB.main();
+}
 
 /*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/

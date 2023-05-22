@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    main.h
+  * @file    rgb.h
   * @author  OpenSnz IoT Team
   * @version 1.0
   ******************************************************************************
@@ -25,25 +25,49 @@
   ******************************************************************************
   */ 
 
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __RGB_H__
+#define __RGB_H__
 
 #include <Arduino.h>
-#include <freertos/queue.h>
-
-/*************** Task Entry Prototypes *******************/
-
-void TGatewayTaskEntry(void * parameter);
-
-void FGatewayTaskEntry(void * parameter);
-
-void TransceiverTaskEntry(void * parameter);
-
-void ForwarderTaskEntry(void * parameter);
-
-void RGBTaskEntry(void * parameter);
 
 
-#endif /* __MAIN_H__ */
+#define RGB_GPIO_RED             GPIO_NUM_13
+#define RGB_GPIO_GREEN           GPIO_NUM_12
+#define RGB_GPIO_BLUE            GPIO_NUM_2
+
+#define RGB_PWM_FREQUENCY        5000
+#define RGB_PWM_RESOLUTION       8
+#define RGB_PWM_CHANNEL_RED      1
+#define RGB_PWM_CHANNEL_GREEN    2
+#define RGB_PWM_CHANNEL_BLUE     3
+
+#define RGB_ANALOG_LED_OFF       255
+#define RGB_ANALOG_LED_ON        0
+
+
+class RGBClass
+{
+private:
+    bool red;
+    bool green;
+    bool blue;
+    bool isColorChanged;
+    void setup(void);
+    void loop(void);
+    void turnOffUnselectedLED(void);
+    void changeBrightness(uint8_t value);
+
+public:
+    void main(void);
+    void selectColor(bool red, bool green, bool blue);
+};
+
+/******************* Exported Global Variables ************************/
+
+extern RGBClass RGB;
+extern TaskHandle_t hRGB;
+
+
+#endif /* __RGB_H__ */
 
 /*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/
