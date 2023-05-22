@@ -32,6 +32,7 @@ RGBClass RGB;
 TaskHandle_t hRGB  = NULL;
 
 void RGBClass::setup(void){
+    analogWriteFrequency(RGB_PWM_FREQUENCY);
     pinMode(RGB_GPIO_RED, OUTPUT);
     analogWrite(RGB_GPIO_RED, RGB_ANALOG_LED_ON);
     pinMode(RGB_GPIO_GREEN, OUTPUT);
@@ -43,26 +44,27 @@ void RGBClass::setup(void){
 }
 
 void RGBClass::loop(void){
+    int16_t brightness=0;
     while(true)
     {
         if(this->isColorChanged)
         {
             this->turnOffUnselectedLED();
         }
-        // Decrease brightness (1300 milliseconds)
-        for(uint8_t i=0; i<=255; i=i+5)
+        // Decrease brightness
+        for(brightness=0; brightness<=255; brightness=brightness+5)
         {
-            this->changeBrightness(i);
-            delay(25);
+            this->changeBrightness(brightness);
+            delay(50);
         }
-        delay(200);
-        // Increase brightness (1300 milliseconds)
-        for(uint8_t i=255; i>=0; i=i-5)
+        delay(1000);
+        // Increase brightness
+        for(brightness=255; brightness>=0; brightness=brightness-5)
         {
-            this->changeBrightness(i);
-            delay(25);
+            this->changeBrightness(brightness);
+            delay(50);
         }
-        delay(200);
+        delay(500);
     }
 }
 
@@ -109,6 +111,27 @@ void RGBClass::selectColor(bool red, bool green, bool blue){
     this->green = green;
     this->blue = blue;
     this->isColorChanged = true;
+}
+
+bool RGBClass::isRedColor(void){
+    if(!this->red || this->green || this->blue){
+        return false;
+    }
+    return true;
+}
+
+bool RGBClass::isGreenColor(void){
+    if(!this->green || this->red || this->blue){
+        return false;
+    }
+    return true;
+}
+
+bool RGBClass::isBlueColor(void){
+    if(!this->blue || this->red || this->green){
+        return false;
+    }
+    return true;
 }
 
 /*********************** (C) COPYRIGHT OpenSnz Technology *****END OF FILE****/

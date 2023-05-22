@@ -36,10 +36,6 @@
 #define RGB_GPIO_BLUE            GPIO_NUM_2
 
 #define RGB_PWM_FREQUENCY        5000
-#define RGB_PWM_RESOLUTION       8
-#define RGB_PWM_CHANNEL_RED      1
-#define RGB_PWM_CHANNEL_GREEN    2
-#define RGB_PWM_CHANNEL_BLUE     3
 
 #define RGB_ANALOG_LED_OFF       255
 #define RGB_ANALOG_LED_ON        0
@@ -60,6 +56,10 @@ private:
 public:
     void main(void);
     void selectColor(bool red, bool green, bool blue);
+    bool isRedColor(void);
+    bool isGreenColor(void);
+    bool isBlueColor(void);
+
 };
 
 /******************* Exported Global Variables ************************/

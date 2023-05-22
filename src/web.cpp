@@ -31,6 +31,7 @@
 #include "log.h"
 #include "forwarder.h"
 #include "gateway.h"
+#include "rgb.h"
 
 WebClass Web;
 AsyncWebServer Server(WEB_PORT);
@@ -74,6 +75,7 @@ void WebClass::connectToWiFi(void){
 
     // Set disconnected event callback
     WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        RGB.selectColor(true, false, false);
         SYSTEM_PRINT("WiFi disconnected --> Reason : ");
         SYSTEM_PRINT_LN(info.wifi_sta_disconnected.reason);
         if(WiFi.status() != WL_CONNECTED)
@@ -89,6 +91,7 @@ void WebClass::connectToWiFi(void){
 
     // Set connected event callback
     WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        RGB.selectColor(false, false, true);
         SYSTEM_PRINT("WiFi connected --> Web IP : ");
         SYSTEM_PRINT_LN(WiFi.localIP());
         WiFi.softAPdisconnect(true);

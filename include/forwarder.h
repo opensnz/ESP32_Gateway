@@ -129,6 +129,7 @@ private:
     void loop(void);
 
 public:
+    bool isServerOnline = false;
     ForwarderClass();
     ForwarderClass(const char * host, uint16_t port = FORWARDER_PORT_DEFAULT);
     bool loadConfig(void);

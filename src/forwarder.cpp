@@ -28,6 +28,7 @@
 #include "forwarder.h"
 #include "common.h"
 #include "system.h"
+#include "rgb.h"
 
 QueueHandle_t qGatewayToForwarder = NULL;
 QueueHandle_t qForwarderToGateway = NULL;
@@ -167,6 +168,11 @@ void ForwarderClass::handle(const uint8_t * data, uint32_t size){
             break;
         case PKT_PULL_ACK:
             SYSTEM_LOG_LN("PKT_PULL_ACK");
+            this->isServerOnline = true;
+            if(!RGB.isGreenColor())
+            {
+                RGB.selectColor(false, true, false);
+            }
             break;
         case PKT_PULL_RESP:
             SYSTEM_LOG_LN("PKT_PULL_RESP");
@@ -199,6 +205,7 @@ void periodicTaskEntry(void * parameter){
     uint32_t length;
     uint8_t packet[PKT_MAX_SIZE];
 
+
     while(true)
     {
         while(WiFi.status() != WL_CONNECTED)
@@ -216,6 +223,7 @@ void periodicTaskEntry(void * parameter){
             SYSTEM_LOG("PKT_PUSH_DATA : ");
             SYSTEM_PRINT_LN(String(packet, length));
             SYSTEM_PRINT_LN("##################################################");
+            
             Forwarder.getUDP()->writeTo(packet, length, *(Forwarder.getHost()), Forwarder.getPort());
         }
         
@@ -231,7 +239,15 @@ void periodicTaskEntry(void * parameter){
         SYSTEM_LOG_LN("PKT_PULL_DATA");
         Forwarder.getHandler()->pullData(packet);
         Forwarder.getUDP()->writeTo(packet, PKT_MIN_SIZE, *(Forwarder.getHost()), Forwarder.getPort());
+        Forwarder.isServerOnline = false;
         delay(Forwarder.getHandler()->aliveInterval * S_TO_MS_FACTOR);
+        if(!Forwarder.isServerOnline)
+        {
+            if(WiFi.status() == WL_CONNECTED)
+            {
+                RGB.selectColor(false, false, true);
+            }
+        }
     }
 }
 
