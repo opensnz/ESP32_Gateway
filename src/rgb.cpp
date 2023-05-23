@@ -85,6 +85,10 @@ void RGBClass::turnOffUnselectedLED(void){
 }
 
 void RGBClass::changeBrightness(uint8_t value){
+    if(this->isColorChanged)
+    {
+        this->turnOffUnselectedLED();
+    }
     if(this->red)
     {
         analogWrite(RGB_GPIO_RED, value);
