@@ -43,7 +43,7 @@ void setup() {
     // System started fine
     
     // Launch RGB Led Task
-    xTaskCreatePinnedToCore(RGBTaskEntry, "RGBTask", 10000, NULL, TASK_PRIORITY, &hRGB, 1);
+    xTaskCreatePinnedToCore(RGBTaskEntry, "RGBTask", 10000, NULL, TASK_PRIORITY, &hRGB, 0);
 
     // Start Web Server
     Web.begin();
