@@ -35,7 +35,7 @@
 
 #define  S_TO_MS_FACTOR     1000
 #define  TIMESTAMP_DEFAULT  1672531200   // January 1, 2023, 00:00:00 (seconds)
-#define  TASK_PRIORITY      1
+#define  TASK_PRIORITY      3
 
 uint32_t hexStringToArray(const String & hexString, uint8_t *pArray);
 
