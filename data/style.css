@@ -134,7 +134,7 @@ header {
   }
   
   #device .form-text {
-    color: #dc3545;
+    color: black ;
     font-size: 14px;
     margin-top: 5px;
   }
@@ -184,6 +184,14 @@ header {
   
   #network .card {
     margin-bottom: 15px;
+  }
+  #system .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .col-lg-4 {
+    flex-basis: calc(33.33% - 15px);
   }
   
   #network .card-header {
@@ -440,20 +448,16 @@ footer {
     flex: 0 0 100%;
     max-width: 100%;
   }
-  
-  .text-end {
-    text-align: center;
+}
+
+@media (max-width: 991.98px) {
+  .col-lg-4 {
+    flex-basis: calc(50% - 15px);
   }
-  
-  #system .input-group-text {
-    min-width: unset;
-  }
-  
-  #system .form-control {
-    width: 100%;
-  }
-  
-  #device .card {
-    text-align: center;
+}
+
+@media (max-width: 767.98px) {
+  .col-lg-4 {
+    flex-basis: 100%;
   }
 }
