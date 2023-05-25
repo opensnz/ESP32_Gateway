@@ -170,8 +170,6 @@ header {
   
   #device #device-table tbody tr:hover {
     background-color: #f2f2f2;
-<<<<<<< HEAD
-=======
   }
   #network {
     margin-top: 30px;
@@ -224,10 +222,9 @@ header {
     font-size: 16px;
     font-weight: bold;
     padding: 8px 12px;
-<<<<<<< HEAD
   }
 
-  /* Global styles */
+  
 * {
   box-sizing: border-box;
   margin: 0;
@@ -430,7 +427,33 @@ footer {
 .footer-link {
   color: #fff;
 }
-=======
->>>>>>> 232132021ae8f662bb635ff5a0989d1f6cb03a40
+
+@media (max-width: 991px) {
+  .col-md-4 {
+    flex: 0 0 calc(50% - 20px);
+    max-width: calc(50% - 20px);
   }
->>>>>>> 4f1fb7a917efc01e1bd4b5605986d6702918c1db
+}
+
+@media (max-width: 767px) {
+  .col-md-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .text-end {
+    text-align: center;
+  }
+  
+  #system .input-group-text {
+    min-width: unset;
+  }
+  
+  #system .form-control {
+    width: 100%;
+  }
+  
+  #device .card {
+    text-align: center;
+  }
+}
