@@ -223,6 +223,9 @@ header {
     font-weight: bold;
     padding: 8px 12px;
   }
+=======
+<<<<<<< HEAD
+  }
 
   
 * {
@@ -433,6 +436,7 @@ footer {
     flex: 0 0 calc(50% - 20px);
     max-width: calc(50% - 20px);
   }
+<<<<<<< HEAD
 }
 
 @media (max-width: 767px) {
@@ -457,3 +461,7 @@ footer {
     text-align: center;
   }
 }
+=======
+>>>>>>> 4f1fb7a917efc01e1bd4b5605986d6702918c1db
+>>>>>>> ef65427bc88f0256236269d0cdb218c51ae49df2
+>>>>>>> 812155dc523dcf0da02e5521380fc7506c1e6c6f
