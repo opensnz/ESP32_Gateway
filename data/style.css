@@ -404,6 +404,7 @@ body {
 /* Device table styles */
 .table-wrapper {
   overflow-x: auto;
+  margin: auto;
 }
 
 table {
