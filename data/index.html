@@ -5,9 +5,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
   <title>Gateway</title>
-  <link href="bootstrap.min.css" rel="stylesheet">
-  <script src="bootstrap.bundle.min.js"></script>
   <style>
     body {
       padding-top: 70px;
@@ -24,35 +23,33 @@
 </head>
 <body>
   <header>
-    <nav class="navbar navbar-expand-sm bg-primary fixed-top" style="padding: 0px 0px;">
-      <div class="container-fluid justify-content-center">
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav mx-auto">
-            <li class="nav-item d-flex justify-content-center align-items-center">
-              <a class="navbar-brand" href="#">
-                <img src="logo.png" alt="Avatar Logo" style=" width:110px; background-color: white;" class="rounded-pill">
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#system">
-                <button class="btn text-white" onclick="menuOnClick('#system')">System</button>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#network">
-                <button class="btn text-white" onclick="menuOnClick('#network')">Network</button>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#device">
-                <button class="btn text-white" onclick="menuOnClick('#device')">Device</button>
-              </a>
-            </li>
-          </ul>
-        </div>
+    <nav>
+      <div class="container-fluid">
+        <ul>
+          <li>
+            <a href="#">
+              <img src="logo.png" alt="Avatar Logo">
+            </a>
+          </li>
+          <li>
+            <a href="#system">
+              <button onclick="menuOnClick('#system')">System</button>
+            </a>
+          </li>
+          <li>
+            <a href="#network">
+              <button onclick="menuOnClick('#network')">Network</button>
+            </a>
+          </li>
+          <li>
+            <a href="#device">
+              <button onclick="menuOnClick('#device')">Device</button>
+            </a>
+          </li>
+        </ul>
       </div>
     </nav>
-  </header>
+  </header>s
   <main>
     <section id="system">
       <div class="container-fluid mt-3">
@@ -352,7 +349,7 @@
       <div class="row justify-content-center">
         <div class="col-auto">
           <p class="mb-0">&copy;2023 <a href="https://www.opensnz-technology.com" class="text-white"
-              target="_blank">Opensnz Technology</a>. All rights reserved.</p>
+              target="_blank"> Opensnz Technology </a>. All rights reserved.</p>
         </div>
       </div>
     </div>
