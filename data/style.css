@@ -342,6 +342,7 @@ body {
   align-items: center;
   padding: 10px;
   background-color: #f2f2f2;
+  border-radius: 5px;
   border: 1px solid #ccc;
   cursor: pointer;
 }
@@ -459,4 +460,7 @@ footer {
   .col-lg-4 {
     flex-basis: 100%;
   }
+}
+.col-sm-4 {
+  margin: auto;
 }
