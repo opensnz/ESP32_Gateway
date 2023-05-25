@@ -55,7 +55,6 @@ header {
     text-decoration: underline;
   }
 
-<<<<<<< HEAD
   #system {
     margin-top: 30px;
   }
@@ -106,7 +105,7 @@ header {
     border-color: #80bdff;
     outline: 0;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-=======
+  }
   #device {
     padding: 20px;
   }
@@ -171,5 +170,56 @@ header {
   
   #device #device-table tbody tr:hover {
     background-color: #f2f2f2;
->>>>>>> e2cdf8e1d736391637d6c33bb7f9bd03a2aa868a
+  }
+  #network {
+    margin-top: 30px;
+  }
+  
+  #network h3 {
+    font-size: 24px;
+    font-weight:bold;
+    margin-bottom: 20px;
+  }
+  
+  #network .card {
+    margin-bottom: 15px;
+  }
+  
+  #network .card-header {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 15px;
+  }
+  
+  #network .card-body {
+    padding: 15px;
+  }
+  
+  #network .form-label {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  #network .form-control {
+    font-size: 16px;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #495057;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    margin-bottom: 10px;
+  }
+  
+  #network .form-control:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  #network #savesettings {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 8px 12px;
   }
