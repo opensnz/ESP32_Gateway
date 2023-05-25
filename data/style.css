@@ -54,3 +54,69 @@ header {
   nav button:hover {
     text-decoration: underline;
   }
+
+  #device {
+    padding: 20px;
+  }
+  
+  #device h3 {
+    margin-bottom: 20px;
+  }
+  
+  #device .card {
+    margin-bottom: 20px;
+  }
+  
+  #device .card-header {
+    background-color: #f2f2f2;
+    padding: 10px 20px;
+    font-size: 18px;
+  }
+  
+  #device .card-body {
+    padding: 20px;
+  }
+  
+  #device .form-label {
+    font-weight: bold;
+  }
+  
+  #device .form-text {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  
+  #device .btn-light {
+    background-color: #f2f2f2;
+  }
+  
+  #device #add {
+    margin-top: 20px;
+  }
+  
+  #device #delete {
+    margin-bottom: 20px;
+  }
+  
+  #device #device-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  #device #device-table th,
+  #device #device-table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+  }
+  
+  #device #device-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+  
+  #device #device-table tbody tr:hover {
+    background-color: #f2f2f2;
+  }
