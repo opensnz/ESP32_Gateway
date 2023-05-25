@@ -156,11 +156,12 @@ header {
     border-collapse: collapse;
     text-align: center;
     margin-top: 20px;
+    white-space: nowrap;
   }
   
   #device #device-table th,
   #device #device-table td {
-    padding: 10px;
+    margin: auto;
     border: 1px solid #ccc;
   }
   
@@ -400,12 +401,14 @@ body {
 /* Device table styles */
 .table-wrapper {
   overflow-x: auto;
+  margin: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
+  white-space: nowrap;
 }
 
 thead {
@@ -415,7 +418,7 @@ thead {
 th,
 td {
   padding: 10px;
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
   border: 1px solid #ccc;
 }
