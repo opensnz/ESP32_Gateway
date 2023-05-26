@@ -36,7 +36,6 @@ TaskHandle_t hTGateway = NULL;
 TaskHandle_t hFGateway = NULL;
 GatewayClass Gateway;
 QueueHandle_t qJGateway = NULL;
-QueueHandle_t qDGateway = NULL;
 
 void GatewayClass::tSetup(void){
     RTC.offset = GATEWAY_GMT_OFFSET_SEC;
@@ -103,11 +102,6 @@ void GatewayClass::fSetup(void){
     if (qJGateway == NULL)
     {
         SYSTEM_LOGF_LN("Failed to create queue= %p", qJGateway);
-    }
-    qDGateway = xQueueCreate(GATEWAY_QUEUE_SIZE, sizeof(uint8_t)*DEVICE_DEV_EUI_SIZE);
-    if (qDGateway == NULL)
-    {
-        SYSTEM_LOGF_LN("Failed to create queue= %p", qDGateway);
     }
 }
 void GatewayClass::fLoop(void){
