@@ -7,20 +7,17 @@ header {
     padding: 0;
     z-index: 9999;
   }
-  
   nav {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 60px;
   }
-  
   .container-fluid {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
   }
-  
   ul {
     display: flex;
     justify-content: center;
@@ -29,102 +26,90 @@ header {
     margin: 0;
     padding: 0;
   }
-  
   li {
     margin: 0 10px;
   }
-
   nav a {
     text-decoration: none;
     
   }
-  
   nav button {
     border: none;
     background-color: transparent;
     color: white;
     font-size: 16px;
     cursor: pointer;
-  }
-  
+  }  
   #system {
     margin-top: 30px;
-  }
-  
+  }  
   h3 {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
   }
-
   #device {
     padding: 20px;
   }
-
   #device .form-text {
     color: black ;
     font-size: 14px;
     margin-top: 5px;
   }
-  
   #device #add {
     margin-top: 20px;
   }
-  
   #device #delete {
     margin-bottom: 20px;
   }
-
   #network {
     margin-top: 30px;
   }
-
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
+section {
+  padding : 50px;
+}
+#pass::-ms-reveal{
+  display: none;
+}
 body {
   font-family: Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: #333;
+  padding-top: 70px;
 }
-
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
 }
-
 .row {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   margin: 0 -10px;
 }
-
 .col-md-4 {
   flex: 0 0 calc(33.3333% - 20px);
   max-width: calc(33.3333% - 20px);
   padding: 0 10px;
 }
-
 .col-lg-12 {
   flex: 0 0 100%;
   max-width: 100%;
   padding: 0 10px;
 }
-
 .mb-3 {
   margin-bottom: 1rem;
 }
-
 .mb-4 {
   margin-bottom: 1.5rem;
 }
-
 .card {
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -132,7 +117,6 @@ body {
   overflow: hidden;
   margin-bottom: 15px;
 }
-
 .card-header {
   background-color: #f2f2f2;
   padding: 10px 20px;
@@ -140,17 +124,14 @@ body {
   color: #333;
   font-size: 18px;
 }
-
 .card-body {
   padding: 20px;
 }
-
 .form-label {
   font-weight: bold;
   margin-bottom: 10px;
   display: block;
 }
-
 .form-control {
   display: block;
   width: 100%;
@@ -160,13 +141,11 @@ body {
   border: 1px solid #ccc;
   margin-bottom: 10px;
 }
-
 .form-control:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0,123,255,0.5);
 }
-
 .input-group {
   position: relative;
   display: flex;
@@ -175,14 +154,12 @@ body {
   width: 100%;
   margin-bottom: 10px;
 }
-
 .input-group .form-control {
   position: relative;
   flex: 1 1 auto;
   width: 1%;
   margin-bottom: 0;
 }
-
 .input-group-text {
   display: flex;
   align-items: center;
@@ -195,20 +172,16 @@ body {
   font-weight: bold;
   text-align: right;
 }
-
 .input-group-text:hover {
   background-color: #e6e6e6;
 }
-
 .input-group-text svg {
   width: 16px;
   height: 16px;
 }
-
 .input-group-text svg path {
   fill: currentColor;
 }
-
 .btn {
   display: inline-block;
   font-weight: bold;
@@ -223,44 +196,36 @@ body {
   cursor: pointer;
   padding: 8px 12px;
 }
-
 .btn-primary {
   color: #fff;
   background-color: #007bff;
   border-color: #007bff;
 }
-
 .btn-primary:hover {
   background-color: #0069d9;
   border-color: #0062cc;
 }
-
 .btn-danger {
   color: #fff;
   background-color: #dc3545;
   border-color: #dc3545;
 }
-
 .btn-danger:hover {
   background-color: #c82333;
   border-color: #bd2130;
 }
-
 .table-wrapper {
   overflow-x: auto;
   margin: auto;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
 }
-
 thead {
   background-color: #f2f2f2;
 }
-
 th,
 td {
   padding: 10px;
@@ -268,22 +233,18 @@ td {
   vertical-align: middle;
   border: 1px solid #ccc;
 }
-
 th {
   font-weight: bold;
 }
-
 footer {
   background-color: #007bff;
   color: #fff;
   padding: 20px;
   text-align: center;
 }
-
 .footer-link {
   color: #fff;
 }
-
 @media (max-width: 991px) {
   .col-md-4 {
     flex: 0 0 calc(50% - 20px);
@@ -291,20 +252,17 @@ footer {
   
   }
 }
-
 @media (max-width: 767px) {
   .col-md-4 {
     flex: 0 0 100%;
     max-width: 100%;
   }
 }
-
 @media (max-width: 991.98px) {
   .col-lg-4 {
     flex-basis: calc(50% - 15px);
   }
 }
-
 @media (max-width: 767.98px) {
   .col-lg-4 {
     flex-basis: 100%;
