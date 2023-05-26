@@ -134,7 +134,7 @@ void TransceiverClass::loop(void){
     }
 }
 
-int TransceiverClass::sum(String message)
+int TransceiverClass::sum(String & message)
 {
     int response = 0;
     uint8_t length = message.length();

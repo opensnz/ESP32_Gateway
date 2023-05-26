@@ -43,7 +43,7 @@ void setup() {
     // System started fine
     
     // Launch RGB Led Task
-    xTaskCreatePinnedToCore(RGBTaskEntry, "RGBTask", 10000, NULL, TASK_PRIORITY, &hRGB, 0);
+    xTaskCreatePinnedToCore(RGBTaskEntry, "RGBTask", 1000, NULL, TASK_PRIORITY, &hRGB, 0);
 
     // Start Web Server
     Web.begin();
@@ -51,13 +51,13 @@ void setup() {
 
     // Start other Tasks
 
-    xTaskCreatePinnedToCore(ForwarderTaskEntry, "forwarderTask", 10000, NULL, TASK_PRIORITY, &hForwarder, 1);
+    xTaskCreatePinnedToCore(ForwarderTaskEntry, "forwarderTask", TASK_STACK, NULL, TASK_PRIORITY, &hForwarder, 1);
     delay(100);           
-    xTaskCreatePinnedToCore(FGatewayTaskEntry, "fGatewayTask", 10000, NULL, TASK_PRIORITY, &hFGateway, 1);
+    xTaskCreatePinnedToCore(FGatewayTaskEntry, "fGatewayTask", TASK_STACK, NULL, TASK_PRIORITY, &hFGateway, 1);
     delay(100);
-    xTaskCreatePinnedToCore(TGatewayTaskEntry, "tGatewayTask", 10000, NULL, TASK_PRIORITY, &hTGateway, 0);
+    xTaskCreatePinnedToCore(TGatewayTaskEntry, "tGatewayTask", TASK_STACK, NULL, TASK_PRIORITY, &hTGateway, 0);
     delay(100);
-    xTaskCreatePinnedToCore(TransceiverTaskEntry, "transceiverTask",  10000, NULL, TASK_PRIORITY, &hTransceiver, 0);
+    xTaskCreatePinnedToCore(TransceiverTaskEntry, "transceiverTask",  TASK_STACK, NULL, TASK_PRIORITY, &hTransceiver, 0);
     
 }
 

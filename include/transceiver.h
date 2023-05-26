@@ -67,7 +67,7 @@ private:
     void setup(void);
     void loop(void);
     bool loadConfig(void);
-    int sum(String message);
+    int sum(String & message);
     int normalize(int sum);
     uint8_t getMessageID(String & message);  
 

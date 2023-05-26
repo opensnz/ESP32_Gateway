@@ -36,7 +36,6 @@ TaskHandle_t hTGateway = NULL;
 TaskHandle_t hFGateway = NULL;
 GatewayClass Gateway;
 QueueHandle_t qJGateway = NULL;
-QueueHandle_t qDGateway = NULL;
 
 void GatewayClass::tSetup(void){
     RTC.offset = GATEWAY_GMT_OFFSET_SEC;
@@ -53,7 +52,7 @@ void GatewayClass::tSetup(void){
         // Release semaphore for first use
         xSemaphoreGive(this->semaphore);
     }
-    xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", 10000, NULL, TASK_PRIORITY, &joinTaskHandler, 1);
+    xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", TASK_STACK, NULL, TASK_PRIORITY, &joinTaskHandler, 1);
 }
 
 void GatewayClass::tLoop(void){
@@ -104,17 +103,14 @@ void GatewayClass::fSetup(void){
     {
         SYSTEM_LOGF_LN("Failed to create queue= %p", qJGateway);
     }
-    qDGateway = xQueueCreate(GATEWAY_QUEUE_SIZE, sizeof(uint8_t)*DEVICE_DEV_EUI_SIZE);
-    if (qDGateway == NULL)
-    {
-        SYSTEM_LOGF_LN("Failed to create queue= %p", qDGateway);
-    }
 }
 void GatewayClass::fLoop(void){
     Forwarder_data_t fData;
     Device_data_t device;
     BaseType_t status = pdFALSE;
     LoRaWAN_Packet_Type_t type;
+    String PHYPayload;
+    JSONVar packet;
     while(true)
     {
         if(qForwarderToGateway == NULL)
@@ -128,8 +124,8 @@ void GatewayClass::fLoop(void){
         {
             continue;
         }
-        JSONVar packet = JSON.parse(String(fData.packet, fData.packetSize));
-        String PHYPayload = (const char *)packet["txpk"]["data"];
+        packet = JSON.parse(String(fData.packet, fData.packetSize));
+        PHYPayload = (const char *)packet["txpk"]["data"];
         type = Encoder.packetType(PHYPayload);
         if(type == LORAWAN_JOIN_ACCEPT)
         {

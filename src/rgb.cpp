@@ -47,7 +47,7 @@ void RGBClass::loop(void){
     int16_t brightness=0;
     while(true)
     {
-        if(this->isColorChanged)
+        if(this->hasColorChanged)
         {
             this->turnOffUnselectedLED();
         }
@@ -81,11 +81,11 @@ void RGBClass::turnOffUnselectedLED(void){
     {
         analogWrite(RGB_GPIO_BLUE, RGB_ANALOG_LED_OFF);
     }
-    this->isColorChanged = false;
+    this->hasColorChanged = false;
 }
 
 void RGBClass::changeBrightness(uint8_t value){
-    if(this->isColorChanged)
+    if(this->hasColorChanged)
     {
         this->turnOffUnselectedLED();
     }
@@ -114,7 +114,7 @@ void RGBClass::selectColor(bool red, bool green, bool blue){
     this->red = red;
     this->green = green;
     this->blue = blue;
-    this->isColorChanged = true;
+    this->hasColorChanged = true;
 }
 
 bool RGBClass::isRedColor(void){

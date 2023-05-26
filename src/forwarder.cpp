@@ -91,7 +91,7 @@ void ForwarderClass::setup(void){
         SYSTEM_PRINT_LN(this->port);
     }
 
-    xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  10000, NULL, TASK_PRIORITY, &periodicTaskHandler, 1);            
+    xTaskCreatePinnedToCore(periodicTaskEntry, "periodicTask",  TASK_STACK, NULL, TASK_PRIORITY, &periodicTaskHandler, 1);            
   
 }
 
