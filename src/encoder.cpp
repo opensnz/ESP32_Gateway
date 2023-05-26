@@ -76,7 +76,7 @@ void EncoderClass::downStream(Device_data_t & device){
     memcpy(DownStream.MACPayload.AppSKey, device.info.AppSKey, DEVICE_APP_SKEY_SIZE);
 }
 
-LoRaWAN_Packet_Type_t EncoderClass::packetType(String PHYPayload)
+LoRaWAN_Packet_Type_t EncoderClass::packetType(String & PHYPayload)
 {
 
     uint32_t size = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
@@ -113,7 +113,7 @@ bool EncoderClass::joinRequest(Device_data_t & device, JSONVar & packet){
     return false;
 }
 
-bool EncoderClass::joinAccept(Device_data_t & device, String PHYPayload){
+bool EncoderClass::joinAccept(Device_data_t & device, String & PHYPayload){
     DownStream.JoinAccept.DevNonce = device.info.DevNonce;
     memcpy(DownStream.JoinAccept.AppKey, device.info.AppKey, DEVICE_APP_KEY_SIZE);
     device.payloadSize = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
@@ -172,7 +172,7 @@ bool EncoderClass::confirmedDataUp(Device_data_t & device, JSONVar & packet){
     return false;
 }
 
-bool EncoderClass::dataDown(Device_data_t & device, String PHYPayload){
+bool EncoderClass::dataDown(Device_data_t & device, String & PHYPayload){
     
     device.payloadSize = LoRaWAN_Base64_To_Binary(PHYPayload.c_str(), PHYPayload.length(), 
                                                     device.payload, DEVICE_PAYLOAD_MAX_SIZE);

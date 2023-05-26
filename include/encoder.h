@@ -56,12 +56,12 @@ private:
 
 public:
     EncoderClass();
-    LoRaWAN_Packet_Type_t packetType(String PHYPayload);
+    LoRaWAN_Packet_Type_t packetType(String & PHYPayload);
     bool joinRequest(Device_data_t & device, JSONVar & packet);
-    bool joinAccept(Device_data_t & device, String PHYPayload);
+    bool joinAccept(Device_data_t & device, String & PHYPayload);
     bool unconfirmedDataUp(Device_data_t & device, JSONVar & packet);
     bool confirmedDataUp(Device_data_t & device, JSONVar & packet);
-    bool dataDown(Device_data_t & device, String PHYPayload);
+    bool dataDown(Device_data_t & device, String & PHYPayload);
 };
 
 

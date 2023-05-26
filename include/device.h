@@ -43,7 +43,7 @@
 #define DEVICE_FCNT_MAX          65530
 #define DEVICE_FPORT_DEFAULT     1
 
-#define DEVICE_TOTAL             20
+#define DEVICE_TOTAL             10
 #define DEVICE_FILE_CONFIG       "/devices.txt"
 #define DEVICE_FILE_INFO_EXT     ".info"
 #define DEVICE_FILE_PACKET_EXT   ".packet"

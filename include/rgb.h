@@ -47,7 +47,7 @@ private:
     bool red;
     bool green;
     bool blue;
-    bool isColorChanged;
+    bool hasColorChanged;
     void setup(void);
     void loop(void);
     void turnOffUnselectedLED(void);

@@ -53,7 +53,7 @@ void GatewayClass::tSetup(void){
         // Release semaphore for first use
         xSemaphoreGive(this->semaphore);
     }
-    xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", 10000, NULL, TASK_PRIORITY, &joinTaskHandler, 1);
+    xTaskCreatePinnedToCore(joinTaskEntry, "joinTask", TASK_STACK, NULL, TASK_PRIORITY, &joinTaskHandler, 1);
 }
 
 void GatewayClass::tLoop(void){
@@ -115,6 +115,8 @@ void GatewayClass::fLoop(void){
     Device_data_t device;
     BaseType_t status = pdFALSE;
     LoRaWAN_Packet_Type_t type;
+    String PHYPayload;
+    JSONVar packet;
     while(true)
     {
         if(qForwarderToGateway == NULL)
@@ -128,8 +130,8 @@ void GatewayClass::fLoop(void){
         {
             continue;
         }
-        JSONVar packet = JSON.parse(String(fData.packet, fData.packetSize));
-        String PHYPayload = (const char *)packet["txpk"]["data"];
+        packet = JSON.parse(String(fData.packet, fData.packetSize));
+        PHYPayload = (const char *)packet["txpk"]["data"];
         type = Encoder.packetType(PHYPayload);
         if(type == LORAWAN_JOIN_ACCEPT)
         {
